@@ -65,7 +65,7 @@ grievancehub/
 
 🧪 How to Run
 1.Clone the repo:
-git clone https://github.com/yourusername/grievancehub.git
+git clone https:[//github.com/yourusername/grievancehub.git](https://github.com/pradeepkumar823/GrievanceHub/tree/main)
 cd grievancehub
 
 -
