@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - GrievanceHub</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      padding: 60px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 15px 25px;
+      margin: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      background-color: #007bff;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .logout {
+      display: inline-block;
+      margin-top: 40px;
+      color: #e74c3c;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .logout:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Welcome, <span th:text="${username}">User</span>!</h2>
+
+<a class="btn" th:href="@{/complaints/new}">➕ Create Complaint</a>
+<a class="btn" th:href="@{/complaints/my}">📋 View My Complaints</a>
+
+<br/>
+
+<a class="logout" th:href="@{/logout}">⏻ Logout</a>
+
+</body>
+</html>

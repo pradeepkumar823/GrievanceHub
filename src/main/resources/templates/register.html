@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Register | GrievanceHub</title>
+</head>
+<body style="background-color: #f7f9fb; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh;">
+
+<div style="background: white; padding: 30px 40px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,0,0,0.1); width: 350px; text-align: center;">
+  <h2 style="color: #2c3e50;">Create Account</h2>
+
+  <form th:action="@{/register}" method="post" style="margin-top: 20px;">
+    <input type="text" name="name" placeholder="Full Name" required
+           style="width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 5px;" />
+
+    <input type="email" name="email" placeholder="Email Address" required
+           style="width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 5px;" />
+
+    <input type="password" name="password" placeholder="Password" required
+           style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;" />
+
+    <button type="submit"
+            style="width: 100%; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+      Register
+    </button>
+  </form>
+
+  <p style="margin-top: 15px;">Already have an account?
+    <a th:href="@{/login}" style="color: #2980b9; text-decoration: none;">Login</a>
+  </p>
+</div>
+
+</body>
+</html>
