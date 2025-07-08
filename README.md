@@ -1,10 +1,10 @@
-# 📢 GrievanceHub – Public Complaint Management System
+#  GrievanceHub – Public Complaint Management System
 
 GrievanceHub is a web-based platform developed using **Java Spring Boot**, **Thymeleaf**, and **MySQL**, allowing users to submit complaints with location and optional image uploads. Admins can review and take action on the complaints.
 
 ---
 
-## 📌 Features
+##  Features
 
 ✅ User Registration & Login  
 ✅ Complaint Submission with Title, Description, Location & Image  
@@ -17,7 +17,7 @@ GrievanceHub is a web-based platform developed using **Java Spring Boot**, **Thy
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 - **Backend:** Spring Boot (Java), Spring Security  
 - **Frontend:** HTML + Thymeleaf  
@@ -28,7 +28,7 @@ GrievanceHub is a web-based platform developed using **Java Spring Boot**, **Thy
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 grievancehub/
 │
@@ -52,7 +52,7 @@ grievancehub/
 
 ---
 
-## 🖼️ Image Handling
+##  Image Handling
 
 - Images are uploaded using `MultipartFile` and stored inside `src/main/resources/static/uploads/`.
 - The `imagePath` is saved in the database.
@@ -63,7 +63,7 @@ grievancehub/
 
 --
 
-🧪 How to Run
+## How to Run
 1.Clone the repo:
 git clone https:[//github.com/yourusername/grievancehub.git](https://github.com/pradeepkumar823/GrievanceHub/tree/main)
 cd grievancehub
