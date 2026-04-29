@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
-    public void addResourceHandlers(@org.jetbrains.annotations.NotNull ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Dynamically resolve correct folder path (platform independent)
         String uploadPath = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "uploads").toUri().toString();
 
