@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | GrievanceHub</title>
+    <!-- Google Fonts line -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --primary-hover: #ff4d4d;
+            --bg-color: #0f172a; 
+            --card-bg: rgba(30, 41, 59, 0.7); 
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            /* Optional background image fallback with overlay */
+            background-image: linear-gradient(135deg, rgba(15,23,42, 0.8) 0%, rgba(30,27,75, 0.9) 100%), url('/images/compImage.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-box {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            padding: 45px 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--text-main);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+            background-color: rgba(15, 23, 42, 0.8);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff4757 100%);
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -10px rgba(255, 107, 107, 0.5);
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px rgba(255, 107, 107, 0.6);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(1px);
+        }
+
+        .divider {
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider::before { margin-right: 15px; }
+        .divider::after { margin-left: 15px; }
+
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 16px;
+            background-color: white;
+            color: #3f3f3f;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .google-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer-link {
+            display: block;
+            margin-top: 25px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .footer-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link a:hover {
+            color: #ff9999;
+            text-decoration: underline;
+        }
+
+        .alert-error {
+            display: none;
+        }
+
+        .alert-success {
+            display: none;
+        }
+        
+        .swal-blur {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-box">
+        
+        <div class="logo">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Grievance<span>Hub</span>
+        </div>
+
+        <h2>Welcome Back</h2>
+
+        <!-- Use Spring Security standard param names -->
+        <div th:if="${param.error}" class="alert-error">
+            Invalid username or password.
+        </div>
+        <div th:if="${param.logout}" class="alert-success">
+            You have been logged out successfully.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="input-group">
+                <label for="username">Email Address</label>
+                <input type="text" id="username" name="username" placeholder="name@example.com" required autofocus>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit">Sign In</button>
+        </form>
+
+        <div class="divider">or continue with</div>
+
+        <a href="/oauth2/authorization/google" class="google-btn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo">
+            Google
+        </a>
+
+        <div class="footer-link">
+            Don't have an account? <a th:href="@{/register}">Register here</a>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const hasError = /*[[${param.error != null}]]*/ false;
+    const hasLogout = /*[[${param.logout != null}]]*/ false;
+    const registered = /*[[${param.registered != null}]]*/ false;
+
+    if (hasError) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Authentication Failed',
+            text: 'Invalid email or password. Please try again.',
+            background: 'var(--card-bg)',
+            color: 'var(--text-main)',
+            confirmButtonColor: 'var(--primary)',
+            customClass: { popup: 'swal-blur' }
+        });
+    }
+
+    if (hasLogout) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: 'var(--card-bg)',
+            color: 'var(--text-main)'
+        });
+        Toast.fire({
+            icon: 'success',
+            title: 'Logged out successfully'
+        });
+    }
+
+    if (registered) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Welcome to GrievanceHub!',
+            text: 'Your account has been properly registered. Please sign in.',
+            background: 'var(--card-bg)',
+            color: 'var(--text-main)',
+            confirmButtonColor: 'var(--primary)',
+            customClass: { popup: 'swal-blur' }
+        });
+    }
+    /*]]>*/
+</script>
+
+</body>
+</html>

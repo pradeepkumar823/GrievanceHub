@@ -1,0 +1,225 @@
+<nav class="citizen-nav" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="navbar(activePage)">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        
+        .citizen-nav {
+            padding: 16px 40px;
+            background: linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(30,27,75,0.85) 100%);
+            border-bottom: 1px solid rgba(255, 107, 107, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            font-family: 'Outfit', sans-serif;
+            margin: 0 !important;
+        }
+        .c-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+        .c-brand:hover {
+            transform: scale(1.02);
+        }
+        .c-brand span {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFA07A 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .c-menu {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .c-item {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        .c-item::before {
+            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.05); opacity: 0; transition: 0.3s; z-index:-1;
+        }
+        .c-item:hover::before { opacity: 1; }
+        .c-item:hover {
+            color: #f8fafc;
+            transform: translateY(-2px);
+        }
+        .c-item.active {
+            color: white;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.15);
+        }
+        .c-primary-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #ff4757 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #ff4757;
+        }
+        .c-primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
+        }
+        .c-logout {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .c-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: white;
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #f8fafc;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s ease;
+        }
+        .mobile-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 992px) {
+            .citizen-nav {
+                padding: 14px 20px;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .c-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(15, 23, 42, 0.98);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                flex-direction: column;
+                align-items: stretch;
+                padding: 15px 20px 25px 20px;
+                gap: 8px;
+                border-bottom: 1px solid rgba(255, 107, 107, 0.2);
+                box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+            }
+            .c-menu.show {
+                display: flex;
+                animation: slideDown 0.3s ease forwards;
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .lang-switcher {
+                border-right: none !important;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                padding-right: 0 !important;
+                padding-bottom: 15px;
+                margin-right: 0 !important;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+            .c-item {
+                justify-content: flex-start;
+                padding: 12px 16px;
+            }
+            .c-primary-btn {
+                justify-content: center;
+                margin-top: 10px;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+
+    <a th:href="@{/home}" class="c-brand">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#FF6B6B"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        Grievance<span>Hub</span>
+    </a>
+    
+    <button class="mobile-toggle" onclick="this.nextElementSibling.classList.toggle('show')" aria-label="Toggle Menu">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+    
+    <div class="c-menu">
+        <div class="lang-switcher" style="display: flex; gap: 10px; margin-right: 15px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
+            <a href="?lang=en" style="color: #cbd5e1; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#cbd5e1'">EN</a>
+            <a href="?lang=hi" style="color: #cbd5e1; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#cbd5e1'">HI</a>
+        </div>
+        
+        <a th:href="@{/home}" class="c-item" th:classappend="${activePage == 'home' ? 'active' : ''}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span th:text="#{nav.home}">Home</span>
+        </a>
+
+        <a th:href="@{/complaints/explore}" class="c-item" th:classappend="${activePage == 'explore' ? 'active' : ''}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span th:text="#{nav.explore}">Explore Issues</span>
+        </a>
+        
+        <!-- Determine auth robustly from any controller or session via pure Thymeleaf -->
+        <th:block th:with="isAuth=${loggedUser != null or currentUser != null or (session != null and session.SPRING_SECURITY_CONTEXT != null)}">
+            <!-- Authenticated Links -->
+            <a th:if="${isAuth}" th:href="@{/complaints/my}" class="c-item" th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                <span>My Dashboard</span>
+            </a>
+            
+            <a th:if="${isAuth}" th:href="@{/profile}" class="c-item" th:classappend="${activePage == 'profile' ? 'active' : ''}">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Profile</span>
+            </a>
+            
+            <!-- <a th:if="${isAuth}" th:href="@{/logout}" class="c-item c-logout">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span th:text="#{nav.logout}">Sign Out</span>
+            </a> -->
+
+            <!-- Unauthenticated Links -->
+            <a th:unless="${isAuth}" th:href="@{/login}" class="c-item">
+                <span th:text="#{nav.login}">Sign In</span>
+            </a>
+            <a th:unless="${isAuth}" th:href="@{/register}" class="c-primary-btn">
+                <span th:text="#{nav.register}">Register</span>
+            </a>
+        </th:block>
+    </div>
+</nav>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Complaints - GrievanceHub</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --primary-hover: #ff4d4d;
+            --bg-color: #0f172a; /* Deep blue-gray night sky */
+            --card-bg: rgba(30, 41, 59, 0.75); /* Slate with opacity */
+            --table-header: rgba(15, 23, 42, 0.9);
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.15);
+            
+            --status-pending: #fbbf24;
+            --status-progress: #60a5fa;
+            --status-resolved: #34d399;
+            --status-rejected: #f87171;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            /* Optional background image fallback with overlay */
+            background-image: linear-gradient(135deg, rgba(15,23,42, 0.8) 0%, rgba(30,27,75, 0.9) 100%), url('/images/myCompl.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: var(--text-main);
+        }
+
+        .flex-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 50px;
+            padding-bottom: 50px;
+            min-height: calc(100vh - 75px);
+        }
+
+        .complaints-container {
+            width: 95%;
+            max-width: 1400px;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-box {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #FF6B6B, #FFA07A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .action-buttons a {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #ff4757 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .table-box {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden; /* For table border radius */
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background-color: var(--table-header);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        td {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .title-col {
+            font-weight: 600;
+            color: white;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .desc-col {
+            max-width: 250px;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .location-col {
+            font-size: 0.9rem;
+        }
+        
+        .date-col {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Status Badge Styling */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background-color: rgba(255, 255, 255, 0.1); /* fallback */
+        }
+
+        .status-pending { color: var(--status-pending); background-color: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); }
+        .status-in_progress { color: var(--status-progress); background-color: rgba(96, 165, 250, 0.15); border: 1px solid rgba(96, 165, 250, 0.3); }
+        .status-resolved { color: var(--status-resolved); background-color: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); }
+        .status-rejected { color: var(--status-rejected); background-color: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+        /* Image Thumbnail Styling */
+        .img-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .img-thumb:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+        }
+
+        .download-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.3s;
+        }
+
+        .download-link:hover {
+            color: #ff9999;
+            text-decoration: underline;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .no-data svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .badge-secondary {
+            background-color: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .priority-critical { color: #f87171 !important; border-left: 3px solid #f87171;}
+        .priority-high { color: #fb923c !important; border-left: 3px solid #fb923c;}
+        .priority-medium { color: #fbbf24 !important; }
+        .priority-low { color: #34d399 !important; }
+
+        .star-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .feedback-form {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .feedback-form select {
+            padding: 4px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .feedback-form button {
+            padding: 4px 8px;
+            background: var(--status-resolved);
+            color: #0f172a;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Timeline Stepper */
+        .stepper-container {
+            margin-top: 12px;
+            width: 140px;
+        }
+        .stepper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .step {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 2;
+            flex-shrink: 0;
+            border: 2px solid var(--card-bg);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.2);
+        }
+        .step.active {
+            background-color: var(--status-progress);
+            box-shadow: 0 0 0 1px var(--status-progress), 0 0 8px var(--status-progress);
+        }
+        .step.completed-step {
+            background-color: var(--status-resolved);
+            box-shadow: 0 0 0 1px var(--status-resolved);
+        }
+        .step.rejected-step {
+            background-color: var(--status-rejected);
+            box-shadow: 0 0 0 1px var(--status-rejected);
+        }
+        .step-line {
+            flex-grow: 1;
+            height: 2px;
+            background-color: rgba(255,255,255,0.1);
+            z-index: 1;
+            margin: 0 -2px;
+        }
+        .step-line.active-line {
+            background-color: var(--status-resolved);
+        }
+        .step-line.rejected-line {
+            background-color: var(--status-rejected);
+        }
+        .step-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/user-navbar :: navbar(activePage='dashboard')}"></div>
+
+<div class="flex-wrapper">
+    <div class="complaints-container">
+    
+    <div class="header-box">
+        <h2>My Complaints Tracking</h2>
+        <div class="action-buttons">
+
+            <a th:href="@{/complaints/new}" class="btn-primary">
+                + New Complaint
+            </a>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <div th:if="${#lists.isEmpty(complaints)}" class="no-data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <p>You haven't submitted any complaints yet.</p>
+            <a th:href="@{/complaints/new}" style="color:var(--primary); text-decoration: none; margin-top: 10px; display: inline-block; font-weight: 600;">Report an issue now &rarr;</a>
+        </div>
+
+        <div class="table-responsive" th:if="${!#lists.isEmpty(complaints)}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tracking ID</th>
+                        <th>Issue &amp; Dept</th>
+                        <th>Details &amp; Priority</th>
+                        <th>Location</th>
+                        <th>City / State</th>
+                        <th>Attachment</th>
+                        <th>Status &amp; Feedback</th>
+                        <th>Admin Reply</th>
+                        <th>Submitted On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="complaint, iterStat : ${complaints}">
+                        <td th:text="${iterStat.count}">1</td>
+                        <td>
+                            <div th:text="${complaint.trackingId}" style="font-family: monospace; font-weight: 600; color: #a5b4fc; letter-spacing: 0.05em; margin-bottom: 8px;">GRV-25-XYZ</div>
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <a th:href="@{/complaints/{id}/pdf(id=${complaint.id})}" style="background: rgba(96, 165, 250, 0.1); color: var(--status-progress); border: 1px solid rgba(96, 165, 250, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; transition: all 0.2s; width: max-content;" onmouseover="this.style.background='rgba(96, 165, 250, 0.2)'" onmouseout="this.style.background='rgba(96, 165, 250, 0.1)'" title="Download Official PDF Report">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    PDF Export
+                                </a>
+                                <a th:if="${complaint.status == 'Pending' or complaint.status == 'PENDING' or complaint.status == 'In Progress' or complaint.status == 'IN_PROGRESS' or complaint.status == 'ESCALATED'}" th:href="@{/complaints/{id}/rti-pdf(id=${complaint.id})}" style="background: rgba(248, 113, 113, 0.1); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; transition: all 0.2s; width: max-content;" onmouseover="this.style.background='rgba(248, 113, 113, 0.2)'" onmouseout="this.style.background='rgba(248, 113, 113, 0.1)'" title="Generate Legal RTI Draft">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    File RTI Request
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="title-col" th:text="${complaint.title}">Pothole</div>
+                            <span class="badge-secondary" th:text="${complaint.department != null ? complaint.department : 'General'}" style="margin-top: 5px; display: inline-block;">Roads</span>
+                        </td>
+                        <td>
+                            <div class="desc-col" th:title="${complaint.description}" th:text="${complaint.description}">Deep pothole causing traffic issues...</div>
+                            <span th:class="'badge-secondary priority-' + (${complaint.priority != null ? complaint.priority.toLowerCase() : 'low'})" th:text="${complaint.priority != null ? complaint.priority + ' Priority' : 'Low Priority'}" style="margin-top: 5px; display: inline-block; font-weight: bold;">High</span>
+                        </td>
+                        <td class="location-col" th:text="${complaint.location}">123 Main St</td>
+                        <td>
+                            <div th:text="${complaint.city}">New York</div>
+                            <span class="badge-secondary" th:text="${complaint.state}">NY</span>
+                        </td>
+                        <td>
+                            <div th:if="${complaint.imagePath != null}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px;">
+                                <img th:src="@{${complaint.imagePath}}" class="img-thumb" alt="Evidence" loading="lazy" />
+                                <a class="download-link" th:href="@{${complaint.imagePath}}" download>
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Save
+                                </a>
+                            </div>
+                            <span class="badge-secondary" th:if="${complaint.imagePath == null}">No Image</span>
+                        </td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:text="${complaint.status}" 
+                                  th:classappend="'status-' + ${complaint.status.toLowerCase()}">
+                                PENDING
+                            </span>
+
+                            <!-- Visual Timeline Tracker -->
+                            <div class="stepper-container">
+                                <div class="stepper">
+                                    <div class="step" th:classappend="${complaint.status == 'Pending' or complaint.status == 'PENDING' ? 'active' : 'completed-step'}"></div>
+                                    <div class="step-line" th:classappend="${complaint.status != 'Pending' and complaint.status != 'PENDING' ? 'active-line' : ''}"></div>
+                                    
+                                    <div class="step" th:classappend="${complaint.status == 'In Progress' or complaint.status == 'IN_PROGRESS' ? 'active' : (complaint.status == 'Resolved' or complaint.status == 'RESOLVED' ? 'completed-step' : (complaint.status == 'Rejected' or complaint.status == 'REJECTED' ? 'rejected-step' : ''))}"></div>
+                                    <div class="step-line" th:classappend="${complaint.status == 'Resolved' or complaint.status == 'RESOLVED' ? 'active-line' : (complaint.status == 'Rejected' or complaint.status == 'REJECTED' ? 'rejected-line' : '')}"></div>
+                                    
+                                    <div class="step" th:classappend="${complaint.status == 'Resolved' or complaint.status == 'RESOLVED' ? 'completed-step' : (complaint.status == 'Rejected' or complaint.status == 'REJECTED' ? 'rejected-step' : '')}"></div>
+                                </div>
+                                <div class="step-labels">
+                                    <span th:style="${complaint.status == 'Pending' or complaint.status == 'PENDING' ? 'color: var(--text-main);' : ''}">Log</span>
+                                    <span th:style="${complaint.status == 'In Progress' or complaint.status == 'IN_PROGRESS' ? 'color: var(--text-main);' : ''}">Work</span>
+                                    <span th:style="${complaint.status == 'Resolved' or complaint.status == 'RESOLVED' or complaint.status == 'Rejected' or complaint.status == 'REJECTED' ? 'color: var(--text-main);' : ''}">Done</span>
+                                </div>
+                            </div>
+
+                            <!-- Rating Display -->
+                            <div th:if="${complaint.feedbackRating != null}" class="star-rating" style="margin-top: 8px;" title="Your Rating">
+                                ★ <span th:text="${complaint.feedbackRating}">5</span>/5
+                            </div>
+
+                            <!-- Feedback Form -->
+                            <div th:if="${(complaint.status == 'Resolved' or complaint.status == 'Closed') and complaint.feedbackRating == null}" style="margin-top: 10px;">
+                                <form th:action="@{/complaints/{id}/feedback(id=${complaint.id})}" method="post" class="feedback-form">
+                                    <select name="rating" required>
+                                        <option value="" disabled selected>Rate Resolution</option>
+                                        <option value="5">5 ★ Excellent</option>
+                                        <option value="4">4 ★ Good</option>
+                                        <option value="3">3 ★ Average</option>
+                                        <option value="2">2 ★ Poor</option>
+                                        <option value="1">1 ★ Terrible</option>
+                                    </select>
+                                    <button type="submit">Submit</button>
+                                </form>
+                            </div>
+                        </td>
+                        <td>
+                            <!-- Official Admin Reply -->
+                            <div th:if="${complaint.adminReply != null and !#strings.isEmpty(complaint.adminReply)}"
+                                 style="background: rgba(99,102,241,0.1); border-left: 3px solid #6366f1; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; color: #c7d2fe; max-width: 180px; line-height: 1.5;">
+                                <span style="font-size: 0.7rem; font-weight: 700; color: #818cf8; text-transform: uppercase; display: block; margin-bottom: 4px;">Official Response</span>
+                                <span th:text="${complaint.adminReply}"></span>
+                            </div>
+                            <span th:if="${complaint.adminReply == null or #strings.isEmpty(complaint.adminReply)}"
+                                  style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Awaiting response...</span>
+                        </td>
+                        <td class="date-col">
+                            <div th:text="${#temporals.format(complaint.createdAt, 'MMM dd, yyyy')}">Jan 01, 2026</div>
+                            <div style="font-size: 0.75rem; opacity: 0.7;" th:text="${#temporals.format(complaint.createdAt, 'hh:mm a')}">10:30 AM</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

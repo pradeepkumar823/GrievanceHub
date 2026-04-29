@@ -1,0 +1,18 @@
+# Maven build output - NEVER commit this
+target/
+*.class
+*.jar
+*.war
+
+# Application secrets - NEVER commit this!
+src/main/resources/application.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.DS_Store
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Board - GrievanceHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Modern theme matching home */
+        :root { --primary: #FF6B6B; --bg-color: #0f172a; --card-bg: rgba(30, 41, 59, 0.6); --text-main: #f8fafc; --text-muted: #94a3b8; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+        
+        
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(to right, #f8fafc, #cbd5e1); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .header p { color: var(--text-muted); font-size: 1.1rem; }
+        
+        .feed { display: flex; flex-direction: column; gap: 24px; }
+        
+        .complaint-card { background: var(--card-bg); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; gap: 24px; transition: transform 0.2s; }
+        .complaint-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.1); }
+        
+        .vote-column { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-width: 65px; }
+        .btn-upvote { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 12px 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-upvote:hover { background: rgba(255,107,107,0.1); color: var(--primary); border-color: rgba(255,107,107,0.3); }
+        
+        .btn-upvote.voted { background: rgba(255,107,107,0.15); color: var(--primary); border-color: var(--primary); }
+        
+        .vote-count { font-weight: 800; font-size: 1.15rem; }
+        
+        .content-column { flex: 1; display: flex; flex-direction: column; }
+        
+        .badges { display: flex; gap: 10px; margin-bottom: 12px; }
+        .badge { font-size: 0.72rem; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .badge-dept { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+        .badge-loc { background: rgba(255,255,255,0.1); color: var(--text-muted); }
+        .badge-critical { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); box-shadow: 0 0 10px rgba(239,68,68,0.2); }
+        
+        .title { font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; color: white; line-height: 1.3; }
+        .desc { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin-bottom: 18px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; }
+        
+        .footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; margin-top: auto; }
+        
+        .auth-warning { background: rgba(255,165,0,0.1); color: #fbbf24; border: 1px solid rgba(255,165,0,0.2); padding: 14px; border-radius: 12px; text-align: center; margin-bottom: 30px; font-weight: 600; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/user-navbar :: navbar(activePage='explore')}"></div>
+
+<div class="container">
+    <div class="header">
+        <h1>🌐 Public Transparency Board</h1>
+        <p>Explore recognized grievances in your municipal grid.<br>Support prevailing issues to automatically escalate their priority via crowd consensus.</p>
+    </div>
+    
+    <div th:if="${currentUser == null}" class="auth-warning">
+        🔒 Please <strong><a th:href="@{/login}" style="color: white; text-decoration: underline;">Sign In</a></strong> to actively vote and support community issues.
+    </div>
+
+    <div class="feed">
+        <div th:each="c : ${complaints}" class="complaint-card">
+            
+            <div class="vote-column">
+                <form th:action="@{/complaints/{id}/upvote(id=${c.id})}" method="post" style="width: 100%;">
+                    <!-- Toggle 'voted' class natively if user belongs to upvoters set -->
+                    <button type="submit" class="btn-upvote" th:classappend="${currentUser != null && c.upvoters.contains(currentUser)} ? 'voted' : ''">
+                        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                        <span class="vote-count" th:text="${c.upvoteCount}">0</span>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="content-column">
+                <div class="badges">
+                    <span class="badge badge-critical" th:if="${c.priority == 'Critical' || c.upvoteCount >= 10}">🔥 Critical Priority Override</span>
+                    <span class="badge badge-dept" th:text="${c.department}">Dept</span>
+                    <span class="badge badge-loc" th:text="${c.city != null && c.state != null ? c.city + ', ' + c.state : 'Unknown Zone'}">Location</span>
+                </div>
+                
+                <div class="title" th:text="${c.title}">Complaint Title</div>
+                <div class="desc" th:text="${c.description}">Description...</div>
+                
+                <div class="footer">
+                    <div>Tracking Reference: <strong th:text="${c.trackingId}" style="color: white;">ID</strong></div>
+                    <div>Reported Target: <span th:text="${#temporals.format(c.createdAt, 'MMM dd, yyyy')}">Date</span></div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div th:if="${#lists.isEmpty(complaints)}" style="text-align: center; padding: 60px; color: var(--text-muted); background: var(--card-bg); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+            <div style="font-size: 3rem; margin-bottom: 16px;">✨</div>
+            <h3 style="color: white; margin-bottom: 8px;">No Public Grievances</h3>
+            <p>Your municipal grid is currently completely clear.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

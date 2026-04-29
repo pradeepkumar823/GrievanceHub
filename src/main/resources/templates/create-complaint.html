@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Complaint - GrievanceHub</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --primary-hover: #ff4d4d;
+            --bg-color: #0f172a; /* Deep blue-gray night sky */
+            --card-bg: rgba(30, 41, 59, 0.7); /* Slate with opacity */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            background-image: linear-gradient(135deg, rgba(15,23,42, 0.8) 0%, rgba(30,27,75, 0.9) 100%), url('/images/myCompl.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: var(--text-main);
+        }
+        
+        .flex-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 75px);
+            padding: 20px;
+        }
+
+        .complaint-container {
+            width: 100%;
+            max-width: 550px;
+            padding: 20px;
+        }
+
+        .complaint-box {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, #FF6B6B, #FFA07A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .row .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+            background-color: rgba(15, 23, 42, 0.8);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Custom File Upload Styling */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .custom-file-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--input-bg);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .file-upload-wrapper:hover .custom-file-upload {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(255, 107, 107, 0.05);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff4757 100%);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -10px rgba(255, 107, 107, 0.5);
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px rgba(255, 107, 107, 0.6);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(1px);
+        }
+
+        .message {
+            display: none;
+        }
+
+        .error-message {
+            display: none;
+        }
+
+        .swal-blur {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .links a:hover {
+            color: var(--primary);
+        }
+        
+        .links a svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Update file label on selection via JS */
+        .file-name {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-top: 5px;
+            text-align: center;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/user-navbar :: navbar(activePage='new')}"></div>
+
+<div class="flex-wrapper">
+    <div class="complaint-container">
+    <div class="complaint-box">
+        <h2>Report an Issue</h2>
+
+        <div th:if="${success}" class="message">
+            <p th:text="${success}"></p>
+        </div>
+        <div th:if="${error}" class="message error-message">
+            <p th:text="${error}"></p>
+        </div>
+
+        <form th:action="@{/complaints}" method="post" enctype="multipart/form-data">
+            
+            <div class="input-group">
+                <label for="title">Complaint Title</label>
+                <input type="text" id="title" name="title" placeholder="Brief summary of the issue" required>
+            </div>
+
+            <div class="row">
+                <div class="input-group">
+                    <label for="department">Concerned Department</label>
+                    <select id="department" name="department" required>
+                        <option value="" disabled selected>Select Department</option>
+                        <option value="Auto-Detect (AI)" style="font-weight: 700; color: #ff4d4d;">✨ Auto-Detect (AI Keyword Triage)</option>
+                        <option value="Roads & Highways">Roads & Highways</option>
+                        <option value="Water Supply">Water Supply</option>
+                        <option value="Sanitation & Waste">Sanitation & Waste</option>
+                        <option value="Electricity">Electricity</option>
+                        <option value="Public Transport">Public Transport</option>
+                        <option value="Health & Hospitals">Health & Hospitals</option>
+                        <option value="Education">Education</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="priority">Priority Level</label>
+                    <select id="priority" name="priority" required>
+                        <option value="" disabled selected>Select Priority</option>
+                        <option value="Low">Low (Minor Issue)</option>
+                        <option value="Medium">Medium (Affects some)</option>
+                        <option value="High">High (Severe Impact)</option>
+                        <option value="Critical">Critical (Emergency)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="description">Detailed Description</label>
+                <textarea id="description" name="description" placeholder="Provide all necessary details..." required></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="location">Street / Exact Location</label>
+                <input type="text" id="location" name="location" placeholder="e.g. 123 Main St, Near Central Park" required>
+            </div>
+
+            <div class="row">
+                                
+                <div class="input-group">
+                    <label for="state">State / Union Territory</label>
+                    <select id="state" name="state" required>
+                        <option value="" disabled selected>Select State / UT</option>
+                        <optgroup label="--- States ---">
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Chhattisgarh">Chhattisgarh</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                            <option value="Jharkhand">Jharkhand</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Manipur">Manipur</option>
+                            <option value="Meghalaya">Meghalaya</option>
+                            <option value="Mizoram">Mizoram</option>
+                            <option value="Nagaland">Nagaland</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Sikkim">Sikkim</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Tripura">Tripura</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Uttarakhand">Uttarakhand</option>
+                            <option value="West Bengal">West Bengal</option>
+                        </optgroup>
+                        <optgroup label="--- Union Territories ---">
+                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                            <option value="Chandigarh">Chandigarh</option>
+                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                            <option value="Delhi">Delhi (NCT)</option>
+                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                            <option value="Ladakh">Ladakh</option>
+                            <option value="Lakshadweep">Lakshadweep</option>
+                            <option value="Puducherry">Puducherry</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="city">City / District</label>
+                    <input type="text" id="city" name="city" placeholder="e.g. Mumbai, Lucknow" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Evidence (Image)</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="image" name="image" accept="image/*" onchange="updateFileName(this)">
+                    <div class="custom-file-upload">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Choose an image (optional)</span>
+                    </div>
+                </div>
+                <span class="file-name" id="fileNameDisplay"></span>
+            </div>
+            
+            <!-- Hidden GPS tracking coords -->
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+
+            <button type="submit">Submit Complaint</button>
+        </form>
+
+        <script>
+            // Silently capture physical location if the user allows it
+            document.addEventListener("DOMContentLoaded", () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            document.getElementById("latitude").value = position.coords.latitude;
+                            document.getElementById("longitude").value = position.coords.longitude;
+                        },
+                        (error) => {
+                            console.warn("Geolocation block: " + error.message);
+                        }
+                    );
+                }
+            });
+        </script>
+
+
+    </div>
+</div>
+
+<script>
+    function updateFileName(input) {
+        const display = document.getElementById('fileNameDisplay');
+        if (input.files && input.files.length > 0) {
+            display.textContent = input.files[0].name;
+            display.style.color = 'var(--primary)';
+        } else {
+            display.textContent = '';
+        }
+    }
+</script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const hasSuccess = /*[[${success != null}]]*/ false;
+    const successMsg = /*[[${success}]]*/ '';
+    const hasError = /*[[${error != null}]]*/ false;
+    const errorMsg = /*[[${error}]]*/ '';
+
+    if (hasSuccess) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Submitted!',
+            text: successMsg,
+            background: 'var(--card-bg)',
+            color: 'var(--text-main)',
+            confirmButtonColor: 'var(--primary)',
+            customClass: { popup: 'swal-blur' }
+        });
+    }
+
+    if (hasError) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Submission Failed',
+            text: errorMsg,
+            background: 'var(--card-bg)',
+            color: 'var(--text-main)',
+            confirmButtonColor: 'var(--primary)',
+            customClass: { popup: 'swal-blur' }
+        });
+    }
+    /*]]>*/
+</script>
+
+</body>
+</html>
