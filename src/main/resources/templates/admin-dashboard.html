@@ -230,7 +230,106 @@
         </div>
     </div>
 
-    <!-- Analytics Dashboard -->
+    <!-- KPI Stat Cards -->
+    <style>
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px)  { .kpi-grid { grid-template-columns: 1fr; } }
+
+        .kpi-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px 28px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .kpi-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            border-radius: 20px 20px 0 0;
+        }
+        .kpi-card.blue::before   { background: linear-gradient(90deg, #60a5fa, #818cf8); }
+        .kpi-card.green::before  { background: linear-gradient(90deg, #34d399, #10b981); }
+        .kpi-card.red::before    { background: linear-gradient(90deg, #f87171, #ef4444); }
+        .kpi-card.purple::before { background: linear-gradient(90deg, #a78bfa, #f472b6); }
+
+        .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); border-color: rgba(139,92,246,0.4); }
+
+        .kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: #64748b; margin-bottom: 10px; }
+        .kpi-value { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px; }
+        .kpi-value.blue   { color: #60a5fa; }
+        .kpi-value.green  { color: #34d399; }
+        .kpi-value.red    { color: #f87171; }
+        .kpi-value.purple { color: #a78bfa; }
+        .kpi-sub { font-size: 0.82rem; color: #64748b; display: flex; align-items: center; gap: 6px; }
+        .trend-up   { color: #34d399; font-weight: 700; }
+        .trend-down { color: #f87171; font-weight: 700; }
+
+        /* Mini dept bars */
+        .dept-bars { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .dept-bar-row { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+        .dept-bar-label { color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90px; flex-shrink: 0; }
+        .dept-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+        .dept-bar-fill  { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #a78bfa, #f472b6); transition: width 1s ease; }
+        .dept-bar-count { color: #cbd5e1; font-weight: 700; min-width: 20px; text-align: right; }
+    </style>
+
+    <div class="kpi-grid" th:if="${totalCount > 0}">
+        <!-- Card 1: This Week vs Last Week -->
+        <div class="kpi-card blue">
+            <div class="kpi-label">This Week</div>
+            <div class="kpi-value blue" th:text="${thisWeekCount}">0</div>
+            <div class="kpi-sub">
+                <span th:if="${weekTrend == 'up'}" class="trend-up">
+                    ↑ <span th:text="${thisWeekCount - lastWeekCount}">0</span> more
+                </span>
+                <span th:if="${weekTrend == 'down'}" class="trend-down">
+                    ↓ <span th:text="${lastWeekCount - thisWeekCount}">0</span> fewer
+                </span>
+                <span th:if="${weekTrend == 'up' and lastWeekCount == 0}" class="trend-up">↑ New this week</span>
+                than last week
+            </div>
+        </div>
+
+        <!-- Card 2: Avg Resolution Time -->
+        <div class="kpi-card green">
+            <div class="kpi-label">Avg Resolution</div>
+            <div class="kpi-value green" th:text="${avgResolutionHours > 0 ? avgResolutionHours + 'h' : 'N/A'}">N/A</div>
+            <div class="kpi-sub">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                avg time to resolve
+            </div>
+        </div>
+
+        <!-- Card 3: SLA Breaches -->
+        <div class="kpi-card red">
+            <div class="kpi-label">SLA Breaches</div>
+            <div class="kpi-value red" th:text="${slaBreachCount}">0</div>
+            <div class="kpi-sub">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                open &gt; 7 days
+            </div>
+        </div>
+
+        <!-- Card 4: Top Departments -->
+        <div class="kpi-card purple">
+            <div class="kpi-label">Top Departments</div>
+            <div class="dept-bars" th:with="maxVal=${topDepts.isEmpty() ? 1 : topDepts.values().iterator().next()}">
+                <div class="dept-bar-row" th:each="entry : ${topDepts}">
+                    <div class="dept-bar-label" th:text="${entry.key}" th:title="${entry.key}">Dept</div>
+                    <div class="dept-bar-track">
+                        <div class="dept-bar-fill" th:style="'width:' + (${entry.value * 100 / maxVal}) + '%'"></div>
+                    </div>
+                    <div class="dept-bar-count" th:text="${entry.value}">0</div>
+                </div>
+                <div th:if="${topDepts.isEmpty()}" style="color:#64748b; font-size:0.82rem;">No data yet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts -->
     <div class="analytics-grid" th:if="${totalCount > 0}">
         <div class="chart-card">
             <h3>Complaints by Status</h3>

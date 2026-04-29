@@ -19,7 +19,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -121,6 +125,45 @@ public class AdminController {
                 .map(Complaint::getDepartment)
                 .filter(d -> d != null && !d.isBlank())
                 .distinct().sorted().collect(Collectors.toList());
+
+        // ── KPI: Weekly trend ──
+        LocalDateTime now        = LocalDateTime.now();
+        LocalDateTime weekStart  = now.minusDays(7);
+        LocalDateTime prevStart  = now.minusDays(14);
+        long thisWeekCount  = all.stream().filter(c -> c.getCreatedAt() != null
+                && c.getCreatedAt().isAfter(weekStart)).count();
+        long lastWeekCount  = all.stream().filter(c -> c.getCreatedAt() != null
+                && c.getCreatedAt().isAfter(prevStart) && c.getCreatedAt().isBefore(weekStart)).count();
+
+        // ── KPI: Average resolution time (hours) ──
+        double avgResolutionHours = all.stream()
+                .filter(c -> "RESOLVED".equalsIgnoreCase(c.getStatus()) && c.getCreatedAt() != null && c.getUpdatedAt() != null)
+                .mapToLong(c -> ChronoUnit.HOURS.between(c.getCreatedAt(), c.getUpdatedAt()))
+                .average().orElse(0);
+
+        // ── KPI: SLA breaches (pending > 7 days) ──
+        long slaBreachCount = all.stream()
+                .filter(c -> ("PENDING".equalsIgnoreCase(c.getStatus()) || "IN_PROGRESS".equalsIgnoreCase(c.getStatus()))
+                        && c.getCreatedAt() != null
+                        && ChronoUnit.DAYS.between(c.getCreatedAt(), now) > 7)
+                .count();
+
+        // ── KPI: Top 3 departments ──
+        Map<String, Long> topDepts = all.stream()
+                .filter(c -> c.getDepartment() != null && !c.getDepartment().isBlank())
+                .collect(Collectors.groupingBy(Complaint::getDepartment, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(3)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (e1, e2) -> e1, LinkedHashMap::new));
+
+        model.addAttribute("thisWeekCount",       thisWeekCount);
+        model.addAttribute("lastWeekCount",       lastWeekCount);
+        model.addAttribute("weekTrend",           thisWeekCount >= lastWeekCount ? "up" : "down");
+        model.addAttribute("avgResolutionHours",  Math.round(avgResolutionHours));
+        model.addAttribute("slaBreachCount",      slaBreachCount);
+        model.addAttribute("topDepts",            topDepts);
 
         model.addAttribute("pendingCount",  pendingCount);
         model.addAttribute("progressCount", progressCount);

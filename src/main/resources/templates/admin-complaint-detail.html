@@ -485,31 +485,97 @@
         </form>
     </div>
 
-    <!-- Phase 6: Immutable Forensic Audit Timeline -->
+    <!-- Visual Audit Timeline -->
     <div class="action-area" th:if="${not #lists.isEmpty(audits)}">
-        <h2 class="section-title" style="color: #f472b6;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            Forensic Audit Log
+        <h2 class="section-title" style="color: #f472b6; display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Status Change Timeline
         </h2>
-        <div style="background: var(--input-bg); border-radius: 16px; border: 1px dashed rgba(244, 114, 182, 0.4); padding: 30px 20px 10px 20px;">
-            <div th:each="audit, iterStat : ${audits}" style="display: flex; gap: 20px; margin-bottom: 25px; position: relative;">
-                
-                <!-- Vertical Line connecting checkpoints vertically -->
-                <div th:if="${!iterStat.last}" style="position: absolute; left: 19px; top: 38px; bottom: -25px; width: 2px; background: rgba(244, 114, 182, 0.2);"></div>
-                
-                <!-- Action Nodes -->
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(244, 114, 182, 0.1); border: 2px solid #f472b6; display: flex; align-items: center; justify-content: center; z-index: 1; flex-shrink: 0; box-shadow: 0 0 10px rgba(244, 114, 182, 0.2);">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #f472b6; stroke-linecap: round;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                
-                <!-- Logging Data points -->
-                <div style="flex: 1; padding-top: 4px;">
-                    <div style="font-size: 1.05rem; font-weight: 700; color: white;">
-                        Status transition: <span th:text="${audit.oldStatus}" style="color: var(--text-muted); font-weight: 500;">Old</span> &rarr; <span th:text="${audit.newStatus}" style="color: #f472b6;">New</span>
+
+        <style>
+            .timeline-wrap { position: relative; padding: 10px 0; }
+            .tl-entry { display: flex; gap: 20px; position: relative; margin-bottom: 0; }
+            .tl-track { display: flex; flex-direction: column; align-items: center; width: 44px; flex-shrink: 0; }
+            .tl-dot {
+                width: 44px; height: 44px; border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.1rem; z-index: 2; flex-shrink: 0;
+                border: 2px solid; box-shadow: 0 0 16px;
+            }
+            .tl-dot.pending   { background: rgba(251,191,36,0.12); border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 16px rgba(251,191,36,0.25); }
+            .tl-dot.in_progress { background: rgba(96,165,250,0.12); border-color: #60a5fa; color: #60a5fa; box-shadow: 0 0 16px rgba(96,165,250,0.25); }
+            .tl-dot.resolved  { background: rgba(52,211,153,0.12); border-color: #34d399; color: #34d399; box-shadow: 0 0 16px rgba(52,211,153,0.25); }
+            .tl-dot.rejected  { background: rgba(248,113,113,0.12); border-color: #f87171; color: #f87171; box-shadow: 0 0 16px rgba(248,113,113,0.25); }
+            .tl-dot.escalated { background: rgba(244,114,182,0.12); border-color: #f472b6; color: #f472b6; box-shadow: 0 0 16px rgba(244,114,182,0.25); }
+            .tl-dot.default   { background: rgba(139,92,246,0.12); border-color: #8b5cf6; color: #8b5cf6; box-shadow: 0 0 16px rgba(139,92,246,0.25); }
+            .tl-dot.latest    { animation: tl-pulse 2s infinite; }
+            @keyframes tl-pulse {
+                0%,100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.5); }
+                50%      { box-shadow: 0 0 0 8px rgba(139,92,246,0); }
+            }
+            .tl-line { flex: 1; width: 2px; background: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); min-height: 28px; }
+            .tl-body { flex: 1; padding-bottom: 28px; }
+            .tl-card {
+                background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 14px; padding: 16px 20px;
+                transition: background 0.2s;
+            }
+            .tl-card:hover { background: rgba(255,255,255,0.07); }
+            .tl-transition { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+            .tl-badge-old { padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(255,255,255,0.08); color: #94a3b8; }
+            .tl-badge-new.pending    { padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(251,191,36,0.15); color: #fbbf24; }
+            .tl-badge-new.in_progress{ padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(96,165,250,0.15); color: #60a5fa; }
+            .tl-badge-new.resolved   { padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(52,211,153,0.15); color: #34d399; }
+            .tl-badge-new.rejected   { padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(248,113,113,0.15); color: #f87171; }
+            .tl-badge-new.escalated  { padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(244,114,182,0.15); color: #f472b6; }
+            .tl-badge-new.default    { padding: 3px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; background: rgba(139,92,246,0.15); color: #a78bfa; }
+            .tl-meta { font-size: 0.82rem; color: #64748b; margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+            .tl-meta span { display: flex; align-items: center; gap: 5px; }
+            .tl-latest-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); background: rgba(139,92,246,0.1); padding: 2px 8px; border-radius: 6px; }
+        </style>
+
+        <div class="timeline-wrap">
+            <div th:each="audit, iterStat : ${audits}" class="tl-entry">
+                <!-- Left track: dot + connector line -->
+                <div class="tl-track">
+                    <div class="tl-dot"
+                         th:classappend="(${iterStat.first} ? 'latest ' : '') + ${audit.newStatus != null ? audit.newStatus.toLowerCase().replace(' ','_') : 'default'}">
+                        <!-- Resolved icon -->
+                        <span th:if="${audit.newStatus != null and (audit.newStatus == 'RESOLVED' or audit.newStatus == 'Resolved')}">✔</span>
+                        <!-- Rejected icon -->
+                        <span th:if="${audit.newStatus != null and (audit.newStatus == 'REJECTED' or audit.newStatus == 'Rejected')}">✕</span>
+                        <!-- In Progress icon -->
+                        <span th:if="${audit.newStatus != null and (audit.newStatus == 'IN_PROGRESS' or audit.newStatus == 'In Progress')}">&#9654;</span>
+                        <!-- Pending icon -->
+                        <span th:if="${audit.newStatus != null and (audit.newStatus == 'PENDING' or audit.newStatus == 'Pending')}">&#9679;</span>
+                        <!-- Escalated icon -->
+                        <span th:if="${audit.newStatus != null and (audit.newStatus == 'ESCALATED' or audit.newStatus == 'Escalated')}">&#9650;</span>
+                        <!-- Default icon for anything else -->
+                        <span th:if="${audit.newStatus == null or (!audit.newStatus.equalsIgnoreCase('RESOLVED') and !audit.newStatus.equalsIgnoreCase('Resolved') and !audit.newStatus.equalsIgnoreCase('REJECTED') and !audit.newStatus.equalsIgnoreCase('Rejected') and !audit.newStatus.equalsIgnoreCase('IN_PROGRESS') and !audit.newStatus.equalsIgnoreCase('In Progress') and !audit.newStatus.equalsIgnoreCase('PENDING') and !audit.newStatus.equalsIgnoreCase('Pending') and !audit.newStatus.equalsIgnoreCase('ESCALATED') and !audit.newStatus.equalsIgnoreCase('Escalated'))}">&#11044;</span>
                     </div>
-                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px; border-left: 3px solid rgba(255,255,255,0.1); padding-left: 10px;">
-                        <span>Authorized Official: <strong th:text="${audit.actionedBy}" style="color: #a5b4fc; font-family: monospace;">Admin</strong></span>
-                        <span style="display: block; margin-top: 4px; font-size: 0.8rem;" th:text="${#temporals.format(audit.timestamp, 'dd MMMM yyyy, hh:mm:ss a')}">Exact Execution Time</span>
+                    <div class="tl-line" th:if="${!iterStat.last}"></div>
+                </div>
+
+                <!-- Right body: card -->
+                <div class="tl-body">
+                    <div class="tl-card">
+                        <div class="tl-transition">
+                            <span class="tl-badge-old" th:text="${audit.oldStatus != null ? audit.oldStatus : 'NEW'}">OLD</span>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#94a3b8" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            <span th:class="'tl-badge-new ' + ${audit.newStatus != null ? audit.newStatus.toLowerCase().replace(' ','_') : 'default'}"
+                                  th:text="${audit.newStatus != null ? audit.newStatus : '—'}">NEW</span>
+                            <span class="tl-latest-label" th:if="${iterStat.first}">Latest</span>
+                        </div>
+                        <div class="tl-meta">
+                            <span>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <strong style="color:#a5b4fc;" th:text="${audit.actionedBy}">official</strong>
+                            </span>
+                            <span>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span th:text="${#temporals.format(audit.timestamp, 'dd MMM yyyy, hh:mm:ss a')}">timestamp</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
