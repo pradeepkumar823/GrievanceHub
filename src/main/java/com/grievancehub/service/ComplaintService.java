@@ -7,7 +7,6 @@ import com.grievancehub.repository.ComplaintAuditRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +29,6 @@ public class ComplaintService {
     @Autowired
     private ComplaintAuditRepository auditRepository;
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
 
     // Save a new complaint submitted by a logged-in user
     public void saveComplaint(String title, String description, String location, String state, String city, String department, String priority, Double latitude, Double longitude, MultipartFile imageFile, String email) {
@@ -93,10 +90,6 @@ public class ComplaintService {
 
         complaintRepository.save(complaint);
         
-        // Phase 7: Broadcast Real-Time STOMP alert directly to Command Center
-        if ("High".equalsIgnoreCase(priority) || "Critical".equalsIgnoreCase(priority)) {
-            messagingTemplate.convertAndSend("/topic/admin-alerts", complaint);
-        }
         
         // Trigger automated email silently in background
         emailService.sendComplaintCreatedEmail(user, complaint);
