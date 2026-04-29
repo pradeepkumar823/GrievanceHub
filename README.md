@@ -1,113 +1,165 @@
-#  GrievanceHub – Public Complaint Management System
+# 🏛️ GrievanceHub – Public Complaint Management System
 
-GrievanceHub is a web-based platform developed using **Java Spring Boot**, **Thymeleaf**, and **MySQL**, allowing users to submit complaints with location and optional image uploads. Admins can review and take action on the complaints.
-
----
-
-Features
-
-✅ User Registration & Login (Form-based Authentication)
-✅ Login with Google (OAuth 2.0)
-✅ Secure Authentication using Spring Security
-✅ Complaint Submission with Title, Description, Location & Image
-✅ View Complaints Submitted by Logged-in User
-✅ Image Upload and Storage in /static/uploads
-✅ Image Preview and Download Option
-✅ Role-based Access (User / Admin – extendable)
-✅ Admin Dashboard (Future Enhancement)
-
-Tech Stack
-Backend: Java, Spring Boot, Spring Security, OAuth 2.0
-Frontend: HTML, CSS, Thymeleaf
-Database: MySQL
-
-Authentication:
-Form Login (Username & Password)
-Google OAuth 2.0 Login
-
-File Upload: MultipartFile
-
-Build Tool: Maven
----
-
-##  Project Structure
-
-grievancehub/
-│
-├── src/main/java/com/grievancehub/
-│   ├── controller/
-│   │   └── ComplaintController.java
-│   ├── service/
-│   │   └── ComplaintService.java
-│   ├── entity/
-│   │   ├── Complaint.java
-│   │   └── User.java
-│   ├── repository/
-│   │   ├── ComplaintRepository.java
-│   │   └── UserRepository.java
-│   └── config/
-│       ├── SecurityConfig.java
-│       └── WebMvcConfig.java
-│
-├── src/main/resources/
-│   ├── static/
-│   │   └── uploads/        # Uploaded images
-│   └── templates/
-│       ├── create-complaint.html
-│       ├── my-complaints.html
-│       ├── login.html
-│       └── register.html
-│
-├── application.properties
-└── pom.xml
-
-
----
-Authentication Flow
-Form-Based Login
-Users can register with username, email, and password.
-Passwords are securely encrypted using BCrypt.
-Access is controlled using Spring Security.
-
-Google OAuth 2.0 Login
-Users can log in using their Google account.
-OAuth authentication is handled by Spring Security.
-On first login, user details (name, email) are saved in the database.
-Existing users are automatically recognized on future logins.
-
---
-
-##  Image Handling
-- Images are uploaded using `MultipartFile` and stored inside `src/main/resources/static/uploads/`.
-- The `imagePath` is saved in the database.
-- Images are shown on the complaint list using:
-  ```html
-  <img th:src="@{${complaint.imagePath}}" width="100"/>
-<a th:href="@{${complaint.imagePath}}" download>Download</a>
+GrievanceHub is a full-stack web application built with **Java Spring Boot**, **Thymeleaf**, and **MySQL** that enables citizens to submit public complaints with location tracking and image uploads. Admins and officers can review, assign, and resolve complaints through a dedicated command dashboard.
 
 ---
 
-## How to Run
-1.Clone the repo:
-git clone https:[//github.com/pradeepkumar823/grievancehub.git](https://github.com/pradeepkumar823/GrievanceHub.git)
-cd grievancehub
+## ✅ Features
 
--
-2.Set up MySQL DB and update application.properties:
+### 👤 User
+- Register & Login with email/password
+- Login with **Google OAuth 2.0**
+- Submit complaints with title, description, category, location & image
+- Track status of submitted complaints
+- Download complaint as **PDF**
+- View profile and complaint history
+- Multi-language support (**English / Hindi**)
+
+### 🛡️ Admin
+- Admin Command Center Dashboard
+- View, filter, and manage all complaints
+- Assign complaints to Officers
+- Update complaint status (Pending → In Progress → Resolved)
+- Manage users and officers
+- Live complaint map view
+- SLA-based auto-escalation
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer        | Technology                                      |
+|--------------|-------------------------------------------------|
+| Backend      | Java 17, Spring Boot, Spring Security, OAuth 2.0 |
+| Frontend     | HTML5, CSS3, Thymeleaf, JavaScript              |
+| Database     | MySQL 8                                         |
+| Email        | Spring Mail (SMTP via Gmail)                    |
+| PDF          | iText / OpenPDF                                 |
+| Build Tool   | Maven                                           |
+| Real-time    | WebSocket (Spring)                              |
+
+---
+
+## 📁 Project Structure
+
+```
+GrievanceHub/
+├── src/
+│   ├── main/
+│   │   ├── java/com/grievancehub/
+│   │   │   ├── config/           # Security, OAuth, WebMVC, WebSocket configs
+│   │   │   ├── controller/       # Admin, Auth, Complaint, Home controllers
+│   │   │   ├── entity/           # User, Complaint, Officer, ComplaintAudit
+│   │   │   ├── repository/       # JPA Repositories
+│   │   │   └── service/          # Business logic & services
+│   │   └── resources/
+│   │       ├── static/           # Images, uploads
+│   │       ├── templates/        # Thymeleaf HTML templates
+│   │       ├── application.properties.example  ← copy this!
+│   │       ├── messages.properties             # Default language
+│   │       ├── messages_en.properties          # English
+│   │       └── messages_hi.properties          # Hindi
+├── .gitignore
+├── pom.xml
+└── README.md
+```
+
+---
+
+## ⚙️ Local Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/pradeepkumar823/GrievanceHub.git
+cd GrievanceHub
+```
+
+### 2. Create `application.properties`
+
+> ⚠️ `application.properties` is NOT committed (it's in `.gitignore`). You must create it locally.
+
+```bash
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+```
+
+Then fill in your actual values in `application.properties`:
+
+```properties
+# Database
 spring.datasource.url=jdbc:mysql://localhost:3306/grievancehub
 spring.datasource.username=root
-spring.datasource.password=yourpassword
+spring.datasource.password=YOUR_DB_PASSWORD
 
--
-3. Configure Google OAuth
-spring.security.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID
-spring.security.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET
-spring.security.oauth2.client.registration.google.scope=profile,email
+# Google OAuth2 (from Google Cloud Console)
+spring.security.oauth2.client.registration.google.client-id=YOUR_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_GOOGLE_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=email,profile
 
--
-4.Run the application:
+# Admin credentials
+app.admin.email=admin@gmail.com
+app.admin.password=YOUR_ADMIN_PASSWORD
+
+# Gmail SMTP (use a Google App Password)
+spring.mail.username=YOUR_GMAIL_ADDRESS
+spring.mail.password=YOUR_GOOGLE_APP_PASSWORD
+```
+
+### 3. Create MySQL Database
+
+```sql
+CREATE DATABASE grievancehub;
+```
+
+### 4. Run the Application
+
+```bash
 mvn spring-boot:run
+```
 
--
-5.Open browser:
+### 5. Open in Browser
+
+```
 http://localhost:8081/
+```
+
+---
+
+## 🔐 Authentication
+
+### Form Login
+- Users register with name, email, and password
+- Passwords encrypted with **BCrypt**
+- Roles: `USER`, `ADMIN`, `OFFICER`
+
+### Google OAuth 2.0
+- One-click login via Google
+- On first login, user is auto-saved to the database
+- Existing users are recognized on future logins
+
+---
+
+## 🌍 Multi-Language Support
+
+The app supports **English** and **Hindi** via Spring's `MessageSource`.
+
+Switch language via the URL parameter:
+```
+http://localhost:8081/?lang=hi   # Hindi
+http://localhost:8081/?lang=en   # English
+```
+
+---
+
+## 📸 Image Handling
+
+- Uploaded using `MultipartFile`
+- Stored in `src/main/resources/static/uploads/`
+- Displayed inline on complaint detail pages
+- Downloadable as attachment
+
+---
+
+## 📬 Contact
+
+> Built by **Pradeep Kumar** | [GitHub](https://github.com/pradeepkumar823)
