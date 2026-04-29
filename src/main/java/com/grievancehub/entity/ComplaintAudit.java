@@ -1,9 +1,16 @@
 package com.grievancehub.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "complaint_audits")
 public class ComplaintAudit {
 
@@ -16,7 +23,7 @@ public class ComplaintAudit {
     private Complaint complaint;
 
     @Column(nullable = false)
-    private String actionedBy; // Email of official
+    private String actionedBy;
 
     @Column(nullable = false)
     private String oldStatus;
@@ -27,9 +34,6 @@ public class ComplaintAudit {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    // Default Constructor
-    public ComplaintAudit() {}
-
     public ComplaintAudit(Complaint complaint, String actionedBy, String oldStatus, String newStatus) {
         this.complaint = complaint;
         this.actionedBy = actionedBy;
@@ -37,17 +41,4 @@ public class ComplaintAudit {
         this.newStatus = newStatus;
         this.timestamp = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Complaint getComplaint() { return complaint; }
-    public void setComplaint(Complaint complaint) { this.complaint = complaint; }
-    public String getActionedBy() { return actionedBy; }
-    public void setActionedBy(String actionedBy) { this.actionedBy = actionedBy; }
-    public String getOldStatus() { return oldStatus; }
-    public void setOldStatus(String oldStatus) { this.oldStatus = oldStatus; }
-    public String getNewStatus() { return newStatus; }
-    public void setNewStatus(String newStatus) { this.newStatus = newStatus; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }

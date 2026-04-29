@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -19,8 +21,7 @@ public class UserService {
     }
 
     public String normalizeEmail(String email) {
-        if (email == null)
-            return null;
+        if (email == null) return null;
         email = email.trim().toLowerCase();
         if (email.endsWith("@gmail.com") || email.endsWith("@googlemail.com")) {
             String[] parts = email.split("@");
@@ -30,55 +31,39 @@ public class UserService {
         return email;
     }
 
-    // ✅ Register a new user manually (via form)
     public void registerUser(String name, String email, String password, String mobileNumber) {
         User user = new User();
         user.setName(name);
         user.setEmail(normalizeEmail(email));
-        user.setPassword(passwordEncoder.encode(password)); // Encrypt password
+        user.setPassword(passwordEncoder.encode(password));
         if (mobileNumber != null && !mobileNumber.trim().isEmpty()) {
             user.setMobileNumber(mobileNumber.trim());
         }
-        user.setRole("USER"); // Default role
+        user.setRole("USER");
         userRepository.save(user);
     }
 
-    // ✅ Find user by email
     public User findByEmail(String email) {
-        java.util.List<User> users = userRepository.findByEmail(normalizeEmail(email));
-        return users.isEmpty() ? null : users.get(0);
+        return userRepository.findByEmail(normalizeEmail(email)).orElse(null);
     }
 
-    // ✅ Check if email exists
     public boolean emailExists(String email) {
-        java.util.List<User> users = userRepository.findByEmail(normalizeEmail(email));
-        return !users.isEmpty();
+        return userRepository.existsByEmail(normalizeEmail(email));
     }
 
-    // ✅ Save method (used by Google login auto-registration)
     public void save(User user) {
         user.setEmail(normalizeEmail(user.getEmail()));
-        // Note: Password encoding has been removed from this generic save method
-        // to prevent double-encoding. Passwords must be encoded BEFORE calling save()
-        // or handle entirely through registerUser()!
-
-        // Assign default role if missing
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("USER");
         }
         userRepository.save(user);
     }
 
-
-
-    // ✅ Get all users (for admin management)
-    public java.util.List<User> getAllUsers() {
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // ✅ Delete a user by ID (admin only)
     public void deleteUserById(Long id) {
         userRepository.deleteById(java.util.Objects.requireNonNull(id));
     }
-
 }

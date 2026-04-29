@@ -5,6 +5,7 @@ import com.grievancehub.entity.ComplaintAudit;
 import com.grievancehub.repository.ComplaintRepository;
 import com.grievancehub.repository.ComplaintAuditRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,9 @@ import java.util.UUID;
 
 @Service
 public class ComplaintService {
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     @Autowired
     private ComplaintRepository complaintRepository;
@@ -43,15 +47,14 @@ public class ComplaintService {
                 //Save inside "uploads" directory inside /static folder
 
 
-                //change with the new file where you want to store the image
-                String uploadDir = System.getProperty("user.dir") + "/src/main/resources/static/uploads/";
+                String uploadPath = uploadDir.endsWith("/") ? uploadDir : uploadDir + "/";
 
                 String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
 
-                File dir = new File(uploadDir);
-                if (!dir.exists()) dir.mkdirs(); // ✅ Create directory if not exists
+                File dir = new File(uploadPath);
+                if (!dir.exists()) dir.mkdirs();
 
-                File destFile = new File(uploadDir + fileName);
+                File destFile = new File(uploadPath + fileName);
                 imageFile.transferTo(destFile);
 
                 imagePath = "/uploads/" + fileName;  // this will be used in HTML <img>

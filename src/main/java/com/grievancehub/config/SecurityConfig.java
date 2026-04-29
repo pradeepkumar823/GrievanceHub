@@ -17,7 +17,7 @@ public class SecurityConfig {
     private CustomOAuth2UserService customOAuth2UserService;
 
     private static final String[] PUBLIC_MATCHERS = {
-            "/", "/home", "/register", "/login", "/css/**", "/js/**", "/images/**", "/uploads/**", "/oauth2/**", "/ws-grievance/**"
+            "/", "/home", "/register", "/login", "/css/**", "/js/**", "/images/**", "/uploads/**", "/oauth2/**"
     };
 
     @Bean
@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/home")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.disable());
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
 
         return http.build();
     }
