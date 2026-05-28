@@ -137,5 +137,31 @@ public class EmailService {
             System.err.println("❌ Operational signal failure.");
         }
     }
+
+    @Async
+    public void sendUserRegistrationEmail(User user) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            String content = "<p>Dear " + user.getName() + ",</p>" +
+                             "<p>Welcome to GrievanceHub! Your account has been registered successfully.</p>" +
+                             "<div class='data-box'>" +
+                             "  <div class='data-row'><div class='label'>Username / Email</div><div class='value'>" + user.getEmail() + "</div></div>" +
+                             "  <div class='data-row'><div class='label'>Role</div><div class='value' style='color:#34d399;'>CITIZEN</div></div>" +
+                             "</div>" +
+                             "<p>You can now log in, lodge grievances, and track updates in real-time.</p>";
+
+            helper.setFrom(fromEmail);
+            helper.setTo(user.getEmail());
+            helper.setSubject("Welcome to GrievanceHub - Registration Successful!");
+            helper.setText(getHtmlTemplate("Registration Confirmed", content), true);
+
+            mailSender.send(message);
+            System.out.println("✅ Welcome email dispatched perfectly to " + user.getEmail());
+        } catch (Exception e) {
+            System.err.println("❌ Welcome email delivery failure: " + e.getMessage());
+        }
+    }
 }
 

@@ -20,6 +20,9 @@ public class UserService {
     private ComplaintRepository complaintRepository;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -46,6 +49,13 @@ public class UserService {
         }
         user.setRole("USER");
         userRepository.save(user);
+
+        // Trigger welcome email in the background
+        try {
+            emailService.sendUserRegistrationEmail(user);
+        } catch (Exception e) {
+            System.err.println("❌ Welcome email dispatch failed: " + e.getMessage());
+        }
     }
 
     public User findByEmail(String email) {
