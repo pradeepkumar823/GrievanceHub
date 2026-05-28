@@ -27,11 +27,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
         
-        // Link with existing DB user
+        // Link with existing DB user or register them automatically on-the-fly
         User user = userService.findByEmail(email);
         if (user == null) {
-            // Requirement: Prevent Google login if the user has not registered yet
-            throw new OAuth2AuthenticationException("unregistered_account");
+            user = new User();
+            user.setEmail(email);
+            user.setName(name != null ? name : email);
+            user.setRole("USER"); // Default citizen role
+            user.setEnabled(true);
+            userService.save(user);
         }
         
         // Block disabled accounts from logging in via Google
