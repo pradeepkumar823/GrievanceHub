@@ -11,10 +11,18 @@ services:
     envVars:
       - key: PORT
         value: 10000
-      - key: SPRING_DATASOURCE_URL
+      - key: SPRING_DATASOURCE_HOST
         fromDatabase:
           name: grievancehub-db
-          property: jdbcConnectionString
+          property: host
+      - key: SPRING_DATASOURCE_PORT
+        fromDatabase:
+          name: grievancehub-db
+          property: port
+      - key: SPRING_DATASOURCE_DATABASE
+        fromDatabase:
+          name: grievancehub-db
+          property: database
       - key: SPRING_DATASOURCE_USERNAME
         fromDatabase:
           name: grievancehub-db
