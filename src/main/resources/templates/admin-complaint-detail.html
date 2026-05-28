@@ -313,6 +313,55 @@
             font-weight: 600;
         }
 
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px;
+                margin-top: 20px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .header > div {
+                flex-direction: column;
+                width: 100%;
+                gap: 8px;
+            }
+            .header a {
+                width: 100%;
+                justify-content: center;
+            }
+            .action-area button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .tl-entry {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .tl-track {
+                flex-direction: row;
+                width: 100%;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 12px;
+            }
+            .tl-line {
+                width: 100%;
+                height: 2px;
+                min-height: unset;
+            }
+            .tl-body {
+                padding-bottom: 20px;
+            }
+            .tl-card {
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>

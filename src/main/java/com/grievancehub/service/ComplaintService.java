@@ -1,4 +1,5 @@
 package com.grievancehub.service;
+
 import com.grievancehub.entity.Complaint;
 import com.grievancehub.entity.User;
 import com.grievancehub.entity.ComplaintAudit;
@@ -29,13 +30,23 @@ public class ComplaintService {
 
     @Autowired
     private EmailService emailService;
-    
+
     @Autowired
     private ComplaintAuditRepository auditRepository;
 
-
     // Save a new complaint submitted by a logged-in user
-    public void saveComplaint(String title, String description, String location, String state, String city, String department, String priority, Double latitude, Double longitude, MultipartFile imageFile, String email) {
+    @org.springframework.transaction.annotation.Transactional
+    public void saveComplaint(String title,
+            String description,
+            String location,
+            String state,
+            String city,
+            String department,
+            String priority,
+            Double latitude,
+            Double longitude,
+            MultipartFile imageFile,
+            String email) {
         User user = userService.findByEmail(email);
         if (user == null) {
             throw new RuntimeException("User not found: " + email);
@@ -44,20 +55,20 @@ public class ComplaintService {
         String imagePath = null;
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                //Save inside "uploads" directory inside /static folder
-
+                // Save inside "uploads" directory inside /static folder
 
                 String uploadPath = uploadDir.endsWith("/") ? uploadDir : uploadDir + "/";
 
                 String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
 
                 File dir = new File(uploadPath);
-                if (!dir.exists()) dir.mkdirs();
+                if (!dir.exists())
+                    dir.mkdirs();
 
                 File destFile = new File(uploadPath + fileName);
                 imageFile.transferTo(destFile);
 
-                imagePath = "/uploads/" + fileName;  // this will be used in HTML <img>
+                imagePath = "/uploads/" + fileName; // this will be used in HTML <img>
             } catch (IOException e) {
                 throw new RuntimeException("Image upload failed: " + e.getMessage());
             }
@@ -68,19 +79,19 @@ public class ComplaintService {
         complaint.setLocation(location);
         complaint.setState(state);
         complaint.setCity(city);
-        
+
         // Phase 6: Automated AI Keyword Triage
         if (department == null || department.equalsIgnoreCase("Auto-Detect (AI)") || department.trim().isEmpty()) {
             complaint.setDepartment(predictDepartment(title + " " + description));
         } else {
             complaint.setDepartment(department);
         }
-        
+
         complaint.setPriority(priority);
         complaint.setLatitude(latitude);
         complaint.setLongitude(longitude);
         complaint.setImagePath(imagePath);
-        
+
         // Generate Unique CPGRAMS style Tracking ID
         String uniqueHash = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         String trackingId = "GRV-" + LocalDateTime.now().getYear() + "-" + uniqueHash;
@@ -92,8 +103,7 @@ public class ComplaintService {
         complaint.setUser(user);
 
         complaintRepository.save(complaint);
-        
-        
+
         // Trigger automated email silently in background
         emailService.sendComplaintCreatedEmail(user, complaint);
     }
@@ -109,25 +119,43 @@ public class ComplaintService {
 
     // Phase 6: Core NLP Keyword Routing Algorithm
     private String predictDepartment(String textContext) {
-        if (textContext == null || textContext.isBlank()) return "Other";
-        
+        if (textContext == null || textContext.isBlank())
+            return "Other";
+
         String desc = textContext.toLowerCase();
-        
-        if (desc.contains("pothole") || desc.contains("road") || desc.contains("street") || desc.contains("asphalt") || desc.contains("highway") || desc.contains("traffic")) return "Roads & Highways";
-        if (desc.contains("leak") || desc.contains("pipe") || desc.contains("water") || desc.contains("drain") || desc.contains("flood") || desc.contains("sewage")) return "Water Supply";
-        if (desc.contains("garbage") || desc.contains("rubbish") || desc.contains("smell") || desc.contains("dump") || desc.contains("toilet") || desc.contains("waste") || desc.contains("trash") || desc.contains("sanitation")) return "Sanitation & Waste";
-        if (desc.contains("power") || desc.contains("electricity") || desc.contains("outage") || desc.contains("wire") || desc.contains("shock") || desc.contains("pole") || desc.contains("light")) return "Electricity";
-        if (desc.contains("bus") || desc.contains("train") || desc.contains("station") || desc.contains("fare") || desc.contains("transport")) return "Public Transport";
-        if (desc.contains("hospital") || desc.contains("clinic") || desc.contains("doctor") || desc.contains("medicine") || desc.contains("health") || desc.contains("disease")) return "Health & Hospitals";
-        if (desc.contains("school") || desc.contains("teacher") || desc.contains("student") || desc.contains("college") || desc.contains("education") || desc.contains("class")) return "Education";
-        
+
+        if (desc.contains("pothole") || desc.contains("road") || desc.contains("street") || desc.contains("asphalt")
+                || desc.contains("highway") || desc.contains("traffic"))
+            return "Roads & Highways";
+        if (desc.contains("leak") || desc.contains("pipe") || desc.contains("water") || desc.contains("drain")
+                || desc.contains("flood") || desc.contains("sewage"))
+            return "Water Supply";
+        if (desc.contains("garbage") || desc.contains("rubbish") || desc.contains("smell") || desc.contains("dump")
+                || desc.contains("toilet") || desc.contains("waste") || desc.contains("trash")
+                || desc.contains("sanitation"))
+            return "Sanitation & Waste";
+        if (desc.contains("power") || desc.contains("electricity") || desc.contains("outage") || desc.contains("wire")
+                || desc.contains("shock") || desc.contains("pole") || desc.contains("light"))
+            return "Electricity";
+        if (desc.contains("bus") || desc.contains("train") || desc.contains("station") || desc.contains("fare")
+                || desc.contains("transport"))
+            return "Public Transport";
+        if (desc.contains("hospital") || desc.contains("clinic") || desc.contains("doctor") || desc.contains("medicine")
+                || desc.contains("health") || desc.contains("disease"))
+            return "Health & Hospitals";
+        if (desc.contains("school") || desc.contains("teacher") || desc.contains("student") || desc.contains("college")
+                || desc.contains("education") || desc.contains("class"))
+            return "Education";
+
         return "Other";
     }
 
     // Phase 4: Toggle Upvote logic implementation
+    @org.springframework.transaction.annotation.Transactional
     public void toggleUpvote(Long complaintId, String email) {
         User user = userService.findByEmail(email);
-        if (user == null) throw new RuntimeException("User not found: " + email);
+        if (user == null)
+            throw new RuntimeException("User not found: " + email);
 
         Complaint c = getComplaintById(complaintId);
         if (c.getUpvoters() == null) {
@@ -144,7 +172,8 @@ public class ComplaintService {
             c.setUpvoteCount(c.getUpvoteCount() + 1);
 
             // Auto-Escalate Strategy: 10 unique citizens overrides SLA threshold instantly
-            if (c.getUpvoteCount() >= 10 && !c.getStatus().equalsIgnoreCase("Resolved") && !c.getStatus().equalsIgnoreCase("Closed") && !c.getStatus().equalsIgnoreCase("Rejected")) {
+            if (c.getUpvoteCount() >= 10 && !c.getStatus().equalsIgnoreCase("Resolved")
+                    && !c.getStatus().equalsIgnoreCase("Closed") && !c.getStatus().equalsIgnoreCase("Rejected")) {
                 c.setPriority("Critical");
             }
         }
@@ -167,19 +196,20 @@ public class ComplaintService {
     }
 
     // Update complaint status and optionally store admin reply
+    @org.springframework.transaction.annotation.Transactional
     public void updateComplaintStatus(Long id, String status, String adminReply, String adminEmail) {
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Complaint not found id: " + id));
-        
+
         String oldStatus = complaint.getStatus() != null ? complaint.getStatus() : "Pending";
-        
+
         complaint.setStatus(status);
         complaint.setUpdatedAt(LocalDateTime.now());
         if (adminReply != null && !adminReply.trim().isEmpty()) {
             complaint.setAdminReply(adminReply);
         }
         complaintRepository.save(complaint);
-        
+
         // Phase 6: Core Immutable Audit Log Lock
         if (!oldStatus.equalsIgnoreCase(status)) {
             ComplaintAudit audit = new ComplaintAudit(complaint, adminEmail, oldStatus, status);
@@ -187,22 +217,42 @@ public class ComplaintService {
         }
 
         // Notify user about the status update
-        if (complaint.getUser() != null && complaint.getUser().getEmail() != null && !complaint.getUser().getEmail().isEmpty()) {
+        if (complaint.getUser() != null && complaint.getUser().getEmail() != null
+                && !complaint.getUser().getEmail().isEmpty()) {
             emailService.sendStatusUpdateEmail(complaint.getUser(), complaint);
         }
     }
-    
+
     // Fetch Audit history
     public List<ComplaintAudit> getAudits(Long complaintId) {
         return auditRepository.findByComplaintIdOrderByTimestampDesc(complaintId);
     }
 
-    // Delete a complaint by ID (admin only)
+    // Delete a complaint by ID (admin only) safely cleaning up upvotes and audit history
+    @org.springframework.transaction.annotation.Transactional
     public void deleteComplaint(Long id) {
-        complaintRepository.deleteById(java.util.Objects.requireNonNull(id));
+        Complaint complaint = complaintRepository.findById(java.util.Objects.requireNonNull(id, "id must not be null"))
+                .orElseThrow(() -> new RuntimeException("Complaint not found id: " + id));
+
+        // 1. Clear upvoters to delete join table entries
+        if (complaint.getUpvoters() != null) {
+            complaint.getUpvoters().clear();
+            complaintRepository.saveAndFlush(complaint);
+        }
+
+        // 2. Delete all related audit logs
+        List<ComplaintAudit> audits = auditRepository.findByComplaintIdOrderByTimestampDesc(id);
+        if (audits != null && !audits.isEmpty()) {
+            auditRepository.deleteAll(audits);
+            auditRepository.flush();
+        }
+
+        // 3. Delete the complaint itself
+        complaintRepository.delete(complaint);
     }
 
     // Submit user feedback
+    @org.springframework.transaction.annotation.Transactional
     public void submitFeedback(Long id, Integer rating) {
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Complaint not found id: " + id));

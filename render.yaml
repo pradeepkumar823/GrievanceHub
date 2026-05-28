@@ -1,0 +1,25 @@
+databases:
+  - name: grievancehub-db
+    databaseName: grievancehub
+    plan: free
+
+services:
+  - type: web
+    name: grievancehub
+    env: docker
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: grievancehub-db
+          property: jdbcConnectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: grievancehub-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: grievancehub-db
+          property: password

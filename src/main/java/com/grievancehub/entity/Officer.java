@@ -1,9 +1,18 @@
 package com.grievancehub.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@RequiredArgsConstructor
 @Table(name = "officers")
+
 public class Officer {
 
     @Id
@@ -13,6 +22,7 @@ public class Officer {
     private String name;
 
     @Column(unique = true, nullable = false)
+    @lombok.EqualsAndHashCode.Include
     private String email;
     private String password;
     

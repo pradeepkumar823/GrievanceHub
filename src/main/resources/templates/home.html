@@ -232,6 +232,36 @@
             .features { grid-template-columns: 1fr; }
         }
 
+        @media (max-width: 500px) {
+            .hero {
+                padding: 40px 15px;
+            }
+            .hero h1 { 
+                font-size: 2.2rem; 
+            }
+            .hero p { 
+                font-size: 1rem; 
+                margin-bottom: 24px;
+            }
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+                gap: 12px;
+            }
+            .hero-actions .btn {
+                width: 100%;
+                padding: 14px 20px;
+                font-size: 1rem;
+            }
+            .features {
+                margin: 20px auto;
+                gap: 20px;
+            }
+            .feature-card {
+                padding: 20px;
+            }
+        }
+
     </style>
 </head>
 <body>

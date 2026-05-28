@@ -10,6 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Table(name = "users")
+@lombok.EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
 
     @Id
@@ -19,6 +20,7 @@ public class User {
     private String name;
 
     @Column(unique = true, nullable = false)
+    @lombok.EqualsAndHashCode.Include
     private String email;
 
     private String password;

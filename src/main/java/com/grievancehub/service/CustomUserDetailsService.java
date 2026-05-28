@@ -44,9 +44,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (officer != null) {
             String role = officer.getRole();
             if (role == null || role.isBlank()) {
-                role = "OFFICER"; // Ensure the role doesn't get messed up if missing
+                role = "OFFICER";
             } else if (role.startsWith("ROLE_")) {
-                role = role.substring(5); // Spring requires roles without ROLE_ prefix in the builder
+                role = role.substring(5);
             }
 
             String storedPassword = (officer.getPassword() == null || officer.getPassword().isBlank())

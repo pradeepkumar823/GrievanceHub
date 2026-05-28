@@ -61,9 +61,11 @@ public class ComplaintController {
     @GetMapping("/explore")
     public String explorePublicComplaints(Model model, Principal principal) {
         List<Complaint> all = complaintService.getAllComplaints();
-        // Filter out sensitive/rejected/closed data. Order dynamically by upvotes.
+        // Filter out sensitive/rejected/closed/resolved data. Order dynamically by upvotes.
         List<Complaint> publicBoard = all.stream()
-                .filter(c -> c.getStatus() == null || (!c.getStatus().equalsIgnoreCase("Rejected") && !c.getStatus().equalsIgnoreCase("Closed")))
+                .filter(c -> c.getStatus() == null || (!c.getStatus().equalsIgnoreCase("Rejected") 
+                        && !c.getStatus().equalsIgnoreCase("Closed") 
+                        && !c.getStatus().equalsIgnoreCase("Resolved")))
                 .sorted((c1, c2) -> Integer.compare(c2.getUpvoteCount(), c1.getUpvoteCount())) // Highest upvotes first
                 .collect(java.util.stream.Collectors.toList());
         
@@ -113,7 +115,7 @@ public class ComplaintController {
             Complaint c = complaintService.getComplaintById(id);
             
             // Security Check: Ensure the logged-in user owns this complaint
-            if (!c.getUser().getEmail().equals(email)) {
+            if (c.getUser() == null || !c.getUser().getEmail().equals(email)) {
                 return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
             }
             
@@ -135,7 +137,7 @@ public class ComplaintController {
             String email = extractUserEmail(principal);
             Complaint c = complaintService.getComplaintById(id);
             
-            if (!c.getUser().getEmail().equals(email)) {
+            if (c.getUser() == null || !c.getUser().getEmail().equals(email)) {
                 return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
             }
             

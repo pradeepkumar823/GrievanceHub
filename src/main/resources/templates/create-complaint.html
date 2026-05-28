@@ -247,6 +247,31 @@
             text-align: center;
             display: block;
         }
+
+        @media (max-width: 500px) {
+            .flex-wrapper {
+                padding: 10px;
+            }
+            .complaint-box {
+                padding: 25px 20px;
+                border-radius: 16px;
+            }
+            h2 {
+                font-size: 1.6rem;
+                margin-bottom: 20px;
+            }
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .row .input-group {
+                width: 100%;
+            }
+            button[type="submit"] {
+                padding: 14px;
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>

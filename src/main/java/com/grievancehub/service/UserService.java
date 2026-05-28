@@ -1,7 +1,9 @@
 package com.grievancehub.service;
 
 import com.grievancehub.entity.User;
+import com.grievancehub.entity.Complaint;
 import com.grievancehub.repository.UserRepository;
+import com.grievancehub.repository.ComplaintRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ComplaintRepository complaintRepository;
 
     @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -63,7 +68,35 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void deleteUserById(Long id) {
-        userRepository.deleteById(java.util.Objects.requireNonNull(id));
+        User user = userRepository.findById(java.util.Objects.requireNonNull(id, "id must not be null"))
+                .orElseThrow(() -> new RuntimeException("User not found id: " + id));
+
+        // 1. Nullify user field on all complaints created by this user
+        List<Complaint> complaints = complaintRepository.findByUser(user);
+        if (complaints != null) {
+            for (Complaint c : complaints) {
+                c.setUser(null);
+                complaintRepository.save(c);
+            }
+        }
+
+        // 2. Remove user from all upvotes sets across complaints
+        List<Complaint> upvotedComplaints = complaintRepository.findAll();
+        for (Complaint c : upvotedComplaints) {
+            if (c.getUpvoters() != null) {
+                boolean removed = c.getUpvoters().removeIf(u -> u.getId().equals(id));
+                if (removed) {
+                    c.setUpvoteCount(Math.max(0, c.getUpvoteCount() - 1));
+                    complaintRepository.save(c);
+                }
+            }
+        }
+
+        complaintRepository.flush();
+
+        // 3. Delete the user itself
+        userRepository.delete(user);
     }
 }

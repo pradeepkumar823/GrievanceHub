@@ -377,6 +377,86 @@
             font-weight: 600;
         }
 
+        @media screen and (max-width: 992px) {
+            .header-box {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+                padding: 20px;
+            }
+            .header-box h2 {
+                font-size: 1.6rem;
+            }
+            .action-buttons {
+                width: 100%;
+            }
+            .action-buttons a {
+                width: 100%;
+                margin-left: 0;
+                justify-content: center;
+            }
+            
+            /* Responsive table layout change */
+            table, tbody, th, td, tr { 
+                display: block; 
+            }
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr { 
+                border: 1px solid rgba(255, 255, 255, 0.08); 
+                margin-bottom: 24px; 
+                border-radius: 16px;
+                background: rgba(30, 41, 59, 0.4);
+                padding: 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }
+            td { 
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+                position: relative;
+                padding-left: 45% !important; 
+                text-align: right;
+                min-height: 44px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 10px !important;
+            }
+            td:last-child {
+                border-bottom: 0;
+            }
+            td:before { 
+                position: absolute;
+                left: 10px;
+                width: 40%; 
+                padding-right: 10px; 
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--text-muted);
+                content: attr(data-label);
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+            
+            .title-col, .desc-col {
+                max-width: unset;
+                text-align: right;
+            }
+            .stepper-container {
+                margin: 0 0 0 auto;
+            }
+            .img-thumb {
+                margin: 0 0 0 auto;
+            }
+            .feedback-form {
+                justify-content: flex-end;
+            }
+        }
     </style>
 </head>
 <body>
@@ -420,8 +500,8 @@
                 </thead>
                 <tbody>
                     <tr th:each="complaint, iterStat : ${complaints}">
-                        <td th:text="${iterStat.count}">1</td>
-                        <td>
+                        <td data-label="#">[[${iterStat.count}]]</td>
+                        <td data-label="Tracking ID">
                             <div th:text="${complaint.trackingId}" style="font-family: monospace; font-weight: 600; color: #a5b4fc; letter-spacing: 0.05em; margin-bottom: 8px;">GRV-25-XYZ</div>
                             <div style="display: flex; flex-direction: column; gap: 5px;">
                                 <a th:href="@{/complaints/{id}/pdf(id=${complaint.id})}" style="background: rgba(96, 165, 250, 0.1); color: var(--status-progress); border: 1px solid rgba(96, 165, 250, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; transition: all 0.2s; width: max-content;" onmouseover="this.style.background='rgba(96, 165, 250, 0.2)'" onmouseout="this.style.background='rgba(96, 165, 250, 0.1)'" title="Download Official PDF Report">
@@ -434,20 +514,20 @@
                                 </a>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Issue &amp; Dept">
                             <div class="title-col" th:text="${complaint.title}">Pothole</div>
                             <span class="badge-secondary" th:text="${complaint.department != null ? complaint.department : 'General'}" style="margin-top: 5px; display: inline-block;">Roads</span>
                         </td>
-                        <td>
+                        <td data-label="Details &amp; Priority">
                             <div class="desc-col" th:title="${complaint.description}" th:text="${complaint.description}">Deep pothole causing traffic issues...</div>
                             <span th:class="'badge-secondary priority-' + (${complaint.priority != null ? complaint.priority.toLowerCase() : 'low'})" th:text="${complaint.priority != null ? complaint.priority + ' Priority' : 'Low Priority'}" style="margin-top: 5px; display: inline-block; font-weight: bold;">High</span>
                         </td>
-                        <td class="location-col" th:text="${complaint.location}">123 Main St</td>
-                        <td>
+                        <td data-label="Location" class="location-col" th:text="${complaint.location}">123 Main St</td>
+                        <td data-label="City / State">
                             <div th:text="${complaint.city}">New York</div>
                             <span class="badge-secondary" th:text="${complaint.state}">NY</span>
                         </td>
-                        <td>
+                        <td data-label="Attachment">
                             <div th:if="${complaint.imagePath != null}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px;">
                                 <img th:src="@{${complaint.imagePath}}" class="img-thumb" alt="Evidence" loading="lazy" />
                                 <a class="download-link" th:href="@{${complaint.imagePath}}" download>
@@ -457,7 +537,7 @@
                             </div>
                             <span class="badge-secondary" th:if="${complaint.imagePath == null}">No Image</span>
                         </td>
-                        <td>
+                        <td data-label="Status &amp; Feedback">
                             <span class="status-badge" 
                                   th:text="${complaint.status}" 
                                   th:classappend="'status-' + ${complaint.status.toLowerCase()}">
@@ -502,7 +582,7 @@
                                 </form>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Admin Reply">
                             <!-- Official Admin Reply -->
                             <div th:if="${complaint.adminReply != null and !#strings.isEmpty(complaint.adminReply)}"
                                  style="background: rgba(99,102,241,0.1); border-left: 3px solid #6366f1; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; color: #c7d2fe; max-width: 180px; line-height: 1.5;">
@@ -512,7 +592,7 @@
                             <span th:if="${complaint.adminReply == null or #strings.isEmpty(complaint.adminReply)}"
                                   style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Awaiting response...</span>
                         </td>
-                        <td class="date-col">
+                        <td data-label="Submitted On" class="date-col">
                             <div th:text="${#temporals.format(complaint.createdAt, 'MMM dd, yyyy')}">Jan 01, 2026</div>
                             <div style="font-size: 0.75rem; opacity: 0.7;" th:text="${#temporals.format(complaint.createdAt, 'hh:mm a')}">10:30 AM</div>
                         </td>

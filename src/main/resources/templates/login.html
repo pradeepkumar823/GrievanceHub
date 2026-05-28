@@ -228,6 +228,30 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border);
         }
+
+        @media (max-width: 480px) {
+            .auth-box {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            h2 {
+                font-size: 1.35rem;
+                margin-bottom: 20px;
+            }
+            .logo {
+                font-size: 1.6rem;
+                margin-bottom: 20px;
+            }
+            input[type="text"],
+            input[type="password"] {
+                padding: 12px 14px;
+            }
+            button[type="submit"],
+            .google-btn {
+                padding: 14px;
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>

@@ -207,6 +207,89 @@
             display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s;
         }
         .csv-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+
+        @media screen and (max-width: 992px) {
+            /* Responsive table layout change */
+            table, tbody, th, td, tr { 
+                display: block; 
+            }
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr { 
+                border: 1px solid var(--card-border); 
+                margin-bottom: 24px; 
+                border-radius: 16px;
+                background: rgba(30, 41, 59, 0.4);
+                padding: 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }
+            td { 
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+                position: relative;
+                padding-left: 45% !important; 
+                text-align: right;
+                min-height: 44px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 10px !important;
+            }
+            td:last-child {
+                border-bottom: 0;
+            }
+            td:before { 
+                position: absolute;
+                left: 10px;
+                width: 40%; 
+                padding-right: 10px; 
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--text-muted);
+                content: attr(data-label);
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+            .actions {
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .header-box {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+                padding: 20px;
+            }
+            .header-box h1 {
+                font-size: 1.6rem;
+            }
+            .header-box > div {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .csv-btn, .animated-gradient-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 16px;
+            }
+            .chart-card {
+                padding: 16px;
+                height: 320px;
+            }
+            .chart-card h3 {
+                font-size: 0.95rem;
+                margin-bottom: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -366,20 +449,20 @@
                 </thead>
                 <tbody>
                     <tr th:each="c : ${complaints}">
-                        <td class="id-col" th:text="'#' + ${c.id}">#1</td>
-                        <td th:text="${c.trackingId != null ? c.trackingId : 'N/A'}" style="font-family: monospace; font-weight: 600; color: #a5b4fc; letter-spacing: 0.05em;">GRV-...</td>
-                        <td>
+                        <td data-label="ID" class="id-col" th:text="'#' + ${c.id}">#1</td>
+                        <td data-label="Tracking ID" th:text="${c.trackingId != null ? c.trackingId : 'N/A'}" style="font-family: monospace; font-weight: 600; color: #a5b4fc; letter-spacing: 0.05em;">GRV-...</td>
+                        <td data-label="Title & Dept">
                             <div style="font-weight: 500;" th:text="${c.title}">Title</div>
                             <span class="badge-secondary" th:text="${c.department != null ? c.department : 'General'}" style="margin-top: 5px; display: inline-block;">Dept</span>
                         </td>
-                        <td class="user-col">
+                        <td data-label="User" class="user-col">
                             <strong th:text="${c.user != null ? c.user.name : 'Unknown User'}">Name</strong>
                             <span th:text="${c.user != null ? c.user.email : 'N/A'}">email</span>
                         </td>
-                        <td class="loc-col">
+                        <td data-label="Location" class="loc-col">
                             <span th:text="${c.city} + ', ' + ${c.state}">City, State</span>
                         </td>
-                        <td>
+                        <td data-label="Status & Priority">
                             <span class="status-badge" 
                                   th:text="${c.status}" 
                                   th:classappend="'status-' + ${c.status.toLowerCase()}">
@@ -387,8 +470,8 @@
                             </span>
                             <div th:class="'badge-secondary priority-' + (${c.priority != null ? c.priority.toLowerCase() : 'low'})" th:text="${c.priority != null ? c.priority + ' Priority' : 'Low Priority'}" style="margin-top: 5px; font-weight: bold; width: fit-content;">High</div>
                         </td>
-                        <td th:text="${#temporals.format(c.createdAt, 'dd-MMM-yyyy HH:mm')}">date</td>
-                        <td>
+                        <td data-label="Submitted At" th:text="${#temporals.format(c.createdAt, 'dd-MMM-yyyy HH:mm')}">date</td>
+                        <td data-label="Actions">
                             <div class="actions">
                                 <a class="view-btn" th:href="@{|/admin/complaint/${c.id}|}">Review</a>
                                 

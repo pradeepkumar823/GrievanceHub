@@ -182,6 +182,91 @@
         }
         .msg-success { background: rgba(52, 211, 153, 0.15); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.3); }
         .msg-error { background: rgba(248, 113, 113, 0.15); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+        @media screen and (max-width: 992px) {
+            /* Responsive table layout change */
+            table, tbody, th, td, tr { 
+                display: block; 
+            }
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr { 
+                border: 1px solid var(--card-border); 
+                margin-bottom: 24px; 
+                border-radius: 16px;
+                background: rgba(30, 41, 59, 0.4);
+                padding: 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }
+            td { 
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+                position: relative;
+                padding-left: 45% !important; 
+                text-align: right;
+                min-height: 44px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 10px !important;
+            }
+            td:last-child {
+                border-bottom: 0;
+            }
+            td:before { 
+                position: absolute;
+                left: 10px;
+                width: 40%; 
+                padding-right: 10px; 
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--text-muted);
+                content: attr(data-label);
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+            .avatar {
+                margin: 0 0 0 auto;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+                padding: 20px;
+            }
+            .page-header h1 {
+                font-size: 1.6rem;
+            }
+            .stat-badge {
+                width: 100%;
+                justify-content: center;
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+            .create-officer-card {
+                padding: 20px;
+            }
+            .create-officer-card h3 {
+                font-size: 1.1rem;
+                margin-bottom: 16px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .form-grid input, .form-grid select, .btn-submit {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -259,26 +344,26 @@
                     <td colspan="7" class="no-data">System logs show no officers provisioned yet.</td>
                 </tr>
                 <tr th:each="user, stat : ${officers}">
-                    <td th:text="${stat.count}" style="font-weight: 700; color: #64748b; font-size: 1.1rem;">1</td>
-                    <td>
+                    <td data-label="#" th:text="${stat.count}" style="font-weight: 700; color: #64748b; font-size: 1.1rem;">1</td>
+                    <td data-label="Official Identifier">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div class="avatar" style="background: linear-gradient(135deg, #10b981, #047857);" th:text="${#strings.toUpperCase(#strings.substring(user.name, 0, 1))}">A</div>
                             <span th:text="${user.name}" style="font-weight: 700; font-size: 1.05rem;">Admin Name</span>
                         </div>
                     </td>
-                    <td th:text="${user.email}" style="color: var(--text-muted); font-weight: 500;">user@email.com</td>
-                    <td th:text="${user.mobileNumber != null ? user.mobileNumber : '—'}" style="font-family: monospace; font-size: 1.05rem; font-weight: 600; color: #a5b4fc;">9876543210</td>
-                    <td>
+                    <td data-label="Comms Link" th:text="${user.email}" style="color: var(--text-muted); font-weight: 500;">user@email.com</td>
+                    <td data-label="Mobile" th:text="${user.mobileNumber != null ? user.mobileNumber : '—'}" style="font-family: monospace; font-size: 1.05rem; font-weight: 600; color: #a5b4fc;">9876543210</td>
+                    <td data-label="Role Clearance">
                         <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
                             <span class="badge-role role-officer" th:text="${user.role != null ? user.role.replace('ROLE_', '') : 'OFFICER'}">OFFICER</span>
                             <div th:if="${user.department}" th:text="'' + ${user.department}" style="font-size: 0.8rem; color: #94a3b8; font-weight: 700; letter-spacing: 0.05em; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px;">Dept</div>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="System Status">
                         <span th:if="${user.enabled}" style="color: var(--green); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green);"></div> Active</span>
                         <span th:if="${!user.enabled}" style="color: var(--text-muted); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%;"></div> Inactive</span>
                     </td>
-                    <td>
+                    <td data-label="Action">
                         <form th:action="@{'/admin/officer/' + ${user.id} + '/delete'}" method="post"
                               onsubmit="return confirm('WARNING: Are you sure you want to completely revoke this officer clearance?');">
                             <button type="submit" class="btn-delete">Revoke</button>
@@ -312,23 +397,23 @@
                     <td colspan="7" class="no-data">No citizens detected in the mainframe.</td>
                 </tr>
                 <tr th:each="user, stat : ${users}">
-                    <td th:text="${stat.count}" style="font-weight: 700; color: #64748b; font-size: 1.1rem;">1</td>
-                    <td>
+                    <td data-label="#" th:text="${stat.count}" style="font-weight: 700; color: #64748b; font-size: 1.1rem;">1</td>
+                    <td data-label="Citizen Identity">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div class="avatar" style="background: linear-gradient(135deg, #6366f1, #a855f7);" th:text="${#strings.toUpperCase(#strings.substring(user.name, 0, 1))}">A</div>
                             <span th:text="${user.name}" style="font-weight: 700; font-size: 1.05rem;">User Name</span>
                         </div>
                     </td>
-                    <td th:text="${user.email}" style="color: var(--text-muted); font-weight: 500;">user@email.com</td>
-                    <td th:text="${user.mobileNumber != null ? user.mobileNumber : '—'}" style="font-family: monospace; font-size: 1.05rem; font-weight: 600; color: #a5b4fc;">9876543210</td>
-                    <td>
+                    <td data-label="Email Handle" th:text="${user.email}" style="color: var(--text-muted); font-weight: 500;">user@email.com</td>
+                    <td data-label="Mobile" th:text="${user.mobileNumber != null ? user.mobileNumber : '—'}" style="font-family: monospace; font-size: 1.05rem; font-weight: 600; color: #a5b4fc;">9876543210</td>
+                    <td data-label="Permission Level">
                         <span class="badge-role role-user" th:text="${user.role != null ? user.role.replace('ROLE_', '') : 'USER'}">USER</span>
                     </td>
-                    <td>
+                    <td data-label="System Status">
                         <span th:if="${user.enabled}" style="color: var(--green); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green);"></div> Active</span>
                         <span th:if="${!user.enabled}" style="color: var(--text-muted); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%;"></div> Inactive</span>
                     </td>
-                    <td>
+                    <td data-label="Action">
                         <form th:action="@{'/admin/user/' + ${user.id} + '/delete'}" method="post"
                               onsubmit="return confirm('DANGER: Delete this citizen? This wipes all related complaints from the system permanently.');">
                             <button type="submit" class="btn-delete">Eliminate</button>
