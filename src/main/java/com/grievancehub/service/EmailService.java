@@ -19,6 +19,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${app.resend.api.key:}")
+    private String resendApiKey;
+
     // --- HTML Email Templates ---
     private String getHtmlTemplate(String title, String contentHtml) {
         return "<!DOCTYPE html>" +
@@ -53,115 +56,137 @@ public class EmailService {
                "</html>";
     }
 
-    @Async
-    public void sendComplaintCreatedEmail(User user, Complaint complaint) {
+    // Master Dispatcher (Switches automatically between local SMTP and production Resend HTTP API)
+    private void dispatchEmail(String to, String subject, String contentHtml) {
+        if (resendApiKey != null && !resendApiKey.trim().isEmpty() && !resendApiKey.equalsIgnoreCase("placeholder")) {
+            sendEmailViaResend(to, subject, contentHtml);
+        } else {
+            sendEmailViaSmtp(to, subject, contentHtml);
+        }
+    }
+
+    // Method A: Direct HTTP POST over port 443 (Never blocked by cloud firewalls/free-tiers!)
+    private void sendEmailViaResend(String to, String subject, String contentHtml) {
+        try {
+            java.net.URL url = new java.net.URL("https://api.resend.com/emails");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + resendApiKey.trim());
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            // Escape strings for JSON safely
+            String escapedSubject = subject.replace("\"", "\\\"");
+            String escapedHtml = contentHtml.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
+
+            String jsonPayload = "{"
+                    + "\"from\":\"GrievanceHub <onboarding@resend.dev>\","
+                    + "\"to\":[\"" + to + "\"],"
+                    + "\"subject\":\"" + escapedSubject + "\","
+                    + "\"html\":\"" + escapedHtml + "\""
+                    + "}";
+
+            try (java.io.OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            int code = conn.getResponseCode();
+            if (code == 200 || code == 201) {
+                System.out.println("✅ Email dispatched perfectly via Resend HTTP API to " + to);
+            } else {
+                try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getErrorStream(), "utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    System.err.println("❌ Resend API response error (status " + code + "): " + response.toString());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Resend API delivery failure: " + e.getMessage());
+        }
+    }
+
+    // Method B: Standard SMTP Mail Sender (Best for Local testing where ports are open)
+    private void sendEmailViaSmtp(String to, String subject, String contentHtml) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            String content = "<p>Dear " + user.getName() + ",</p>" +
-                             "<p>Your grievance application has been recorded successfully. A security summary is provided below:</p>" +
-                             "<div class='data-box'>" +
-                             "  <div class='data-row'><div class='label'>Tracking ID</div><div class='value' style='color:#818cf8;'>" + complaint.getTrackingId() + "</div></div>" +
-                             "  <div class='data-row'><div class='label'>Title</div><div class='value'>" + complaint.getTitle() + "</div></div>" +
-                             "  <div class='data-row'><div class='label'>Department</div><div class='value'>" + complaint.getDepartment() + "</div></div>" +
-                             "  <div class='data-row'><div class='label'>Priority</div><div class='value' style='color:#fbbf24;'>" + complaint.getPriority() + "</div></div>" +
-                             "</div>" +
-                             "<p>You will receive status alerts iteratively.</p>";
-
             helper.setFrom(fromEmail);
-            helper.setTo(user.getEmail());
-            helper.setSubject("Complaint Lodged Correctly: " + complaint.getTrackingId());
-            helper.setText(getHtmlTemplate("Complaint Registered", content), true);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(contentHtml, true);
 
             mailSender.send(message);
-            System.out.println("✅ HTML Email dispatched perfectly to " + user.getEmail());
+            System.out.println("✅ Email dispatched perfectly via SMTP to " + to);
         } catch (Exception e) {
             System.err.println("❌ SMTP delivery failure: " + e.getMessage());
         }
     }
 
     @Async
+    public void sendComplaintCreatedEmail(User user, Complaint complaint) {
+        String content = "<p>Dear " + user.getName() + ",</p>" +
+                         "<p>Your grievance application has been recorded successfully. A security summary is provided below:</p>" +
+                         "<div class='data-box'>" +
+                         "  <div class='data-row'><div class='label'>Tracking ID</div><div class='value' style='color:#818cf8;'>" + complaint.getTrackingId() + "</div></div>" +
+                         "  <div class='data-row'><div class='label'>Title</div><div class='value'>" + complaint.getTitle() + "</div></div>" +
+                         "  <div class='data-row'><div class='label'>Department</div><div class='value'>" + complaint.getDepartment() + "</div></div>" +
+                         "  <div class='data-row'><div class='label'>Priority</div><div class='value' style='color:#fbbf24;'>" + complaint.getPriority() + "</div></div>" +
+                         "</div>" +
+                         "<p>You will receive status alerts iteratively.</p>";
+
+        String html = getHtmlTemplate("Complaint Registered", content);
+        dispatchEmail(user.getEmail(), "Complaint Lodged Correctly: " + complaint.getTrackingId(), html);
+    }
+
+    @Async
     public void sendStatusUpdateEmail(User user, Complaint complaint) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        String color = "#fbbf24"; // pending
+        if ("RESOLVED".equalsIgnoreCase(complaint.getStatus())) color = "#34d399";
+        if ("REJECTED".equalsIgnoreCase(complaint.getStatus())) color = "#f87171";
 
-            String color = "#fbbf24"; // pending
-            if ("RESOLVED".equalsIgnoreCase(complaint.getStatus())) color = "#34d399";
-            if ("REJECTED".equalsIgnoreCase(complaint.getStatus())) color = "#f87171";
+        String content = "<p>Dear " + user.getName() + ",</p>" +
+                         "<p>The state of your submitted grievance has shifted.</p>" +
+                         "<div class='data-box'>" +
+                         "  <div class='data-row'><div class='label'>Tracking ID</div><div class='value'>" + complaint.getTrackingId() + "</div></div>" +
+                         "  <div class='data-row'><div class='label'>Status</div><div class='value' style='color:" + color + "; text-transform:uppercase;'>" + complaint.getStatus() + "</div></div>" +
+                         "</div>" +
+                         "<p><strong>Administrator Note:</strong></p>" +
+                         "<p style='background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; color:#cbd5e1; font-style:italic;'>" + 
+                         (complaint.getAdminReply() != null && !complaint.getAdminReply().isBlank() ? complaint.getAdminReply() : "No message provided.") + "</p>";
 
-            String content = "<p>Dear " + user.getName() + ",</p>" +
-                             "<p>The state of your submitted grievance has shifted.</p>" +
-                             "<div class='data-box'>" +
-                             "  <div class='data-row'><div class='label'>Tracking ID</div><div class='value'>" + complaint.getTrackingId() + "</div></div>" +
-                             "  <div class='data-row'><div class='label'>Status</div><div class='value' style='color:" + color + "; text-transform:uppercase;'>" + complaint.getStatus() + "</div></div>" +
-                             "</div>" +
-                             "<p><strong>Administrator Note:</strong></p>" +
-                             "<p style='background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; color:#cbd5e1; font-style:italic;'>" + 
-                             (complaint.getAdminReply() != null && !complaint.getAdminReply().isBlank() ? complaint.getAdminReply() : "No message provided.") + "</p>";
-
-            helper.setFrom(fromEmail);
-            helper.setTo(user.getEmail());
-            helper.setSubject("Grievance Status Refreshed: " + complaint.getTrackingId());
-            helper.setText(getHtmlTemplate("Status Update", content), true);
-
-            mailSender.send(message);
-            System.out.println("✅ Status upgrade email delivered to " + user.getEmail());
-        } catch (Exception e) {
-            System.err.println("❌ Delivery breakdown: " + e.getMessage());
-        }
+        String html = getHtmlTemplate("Status Update", content);
+        dispatchEmail(user.getEmail(), "Grievance Status Refreshed: " + complaint.getTrackingId(), html);
     }
 
     @Async
     public void sendAdminEscalationAlert(String adminEmail, Complaint complaint) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        String content = "<p style='color:#f87171;'><strong>URGENT SLA BREACH WARNING</strong></p>" +
+                         "<p>A public query is over-indexed without closure.</p>" +
+                         "<div class='data-box'>" +
+                         "  <div class='data-row'><div class='label'>Tracking ID</div><div class='value'>" + complaint.getTrackingId() + "</div></div>" +
+                         "  <div class='data-row'><div class='label'>Title</div><div class='value'>" + complaint.getTitle() + "</div></div>" +
+                         "</div>";
 
-            String content = "<p style='color:#f87171;'><strong>URGENT SLA BREACH WARNING</strong></p>" +
-                             "<p>A public query is over-indexed without closure.</p>" +
-                             "<div class='data-box'>" +
-                             "  <div class='data-row'><div class='label'>Tracking ID</div><div class='value'>" + complaint.getTrackingId() + "</div></div>" +
-                             "  <div class='data-row'><div class='label'>Title</div><div class='value'>" + complaint.getTitle() + "</div></div>" +
-                             "</div>";
-
-            helper.setFrom(fromEmail);
-            helper.setTo(adminEmail);
-            helper.setSubject("🚨 Urgent Escalation: " + complaint.getTrackingId());
-            helper.setText(getHtmlTemplate("SLA Violation Action Required", content), true);
-
-            mailSender.send(message);
-            System.out.println("✅ Operational warning posted correctly.");
-        } catch (Exception e) {
-            System.err.println("❌ Operational signal failure.");
-        }
+        String html = getHtmlTemplate("SLA Violation Action Required", content);
+        dispatchEmail(adminEmail, "🚨 Urgent Escalation: " + complaint.getTrackingId(), html);
     }
 
     @Async
     public void sendUserRegistrationEmail(User user) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        String content = "<p>Dear " + user.getName() + ",</p>" +
+                         "<p>Welcome to GrievanceHub! Your account has been registered successfully.</p>" +
+                         "<div class='data-box'>" +
+                         "  <div class='data-row'><div class='label'>Username / Email</div><div class='value'>" + user.getEmail() + "</div></div>" +
+                         "  <div class='data-row'><div class='label'>Role</div><div class='value' style='color:#34d399;'>CITIZEN</div></div>" +
+                         "</div>" +
+                         "<p>You can now log in, lodge grievances, and track updates in real-time.</p>";
 
-            String content = "<p>Dear " + user.getName() + ",</p>" +
-                             "<p>Welcome to GrievanceHub! Your account has been registered successfully.</p>" +
-                             "<div class='data-box'>" +
-                             "  <div class='data-row'><div class='label'>Username / Email</div><div class='value'>" + user.getEmail() + "</div></div>" +
-                             "  <div class='data-row'><div class='label'>Role</div><div class='value' style='color:#34d399;'>CITIZEN</div></div>" +
-                             "</div>" +
-                             "<p>You can now log in, lodge grievances, and track updates in real-time.</p>";
-
-            helper.setFrom(fromEmail);
-            helper.setTo(user.getEmail());
-            helper.setSubject("Welcome to GrievanceHub - Registration Successful!");
-            helper.setText(getHtmlTemplate("Registration Confirmed", content), true);
-
-            mailSender.send(message);
-            System.out.println("✅ Welcome email dispatched perfectly to " + user.getEmail());
-        } catch (Exception e) {
-            System.err.println("❌ Welcome email delivery failure: " + e.getMessage());
-        }
+        String html = getHtmlTemplate("Registration Confirmed", content);
+        dispatchEmail(user.getEmail(), "Welcome to GrievanceHub - Registration Successful!", html);
     }
 }
-
