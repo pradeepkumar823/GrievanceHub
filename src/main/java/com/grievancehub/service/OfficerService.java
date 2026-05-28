@@ -30,13 +30,26 @@ public class OfficerService {
         
         if (email1.equals(email2)) return true;
         
-        // Gmail dot-equivalence check
+        // Gmail dot-equivalence and plus-addressing (+) check
         boolean isGmail1 = email1.endsWith("@gmail.com") || email1.endsWith("@googlemail.com");
         boolean isGmail2 = email2.endsWith("@gmail.com") || email2.endsWith("@googlemail.com");
         
         if (isGmail1 && isGmail2) {
-            String local1 = email1.split("@")[0].replace(".", "");
-            String local2 = email2.split("@")[0].replace(".", "");
+            String local1 = email1.split("@")[0];
+            String local2 = email2.split("@")[0];
+            
+            // Ignore everything after '+' symbol (Gmail sub-addressing alias)
+            if (local1.contains("+")) {
+                local1 = local1.split("\\+")[0];
+            }
+            if (local2.contains("+")) {
+                local2 = local2.split("\\+")[0];
+            }
+            
+            // Ignore all dots
+            local1 = local1.replace(".", "");
+            local2 = local2.replace(".", "");
+            
             return local1.equals(local2);
         }
         
