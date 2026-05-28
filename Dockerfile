@@ -10,6 +10,8 @@ RUN mvn clean package -DskipTests
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
+# Create uploads directory and ensure it is fully writable
+RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 # Expose the default container port
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -23,3 +23,5 @@ services:
         fromDatabase:
           name: grievancehub-db
           property: password
+      - key: UPLOAD_DIR
+        value: /app/uploads
