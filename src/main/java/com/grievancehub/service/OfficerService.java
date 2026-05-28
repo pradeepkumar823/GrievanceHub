@@ -18,25 +18,54 @@ public class OfficerService {
     }
 
     public String normalizeEmail(String email) {
-        if (email == null)
-            return null;
-        email = email.trim().toLowerCase();
-        if (email.endsWith("@gmail.com") || email.endsWith("@googlemail.com")) {
-            String[] parts = email.split("@");
-            String localPart = parts[0].replace(".", "");
-            return localPart + "@" + parts[1];
+        if (email == null) return null;
+        return email.trim().toLowerCase();
+    }
+
+    public boolean emailsConceptuallyMatch(String email1, String email2) {
+        if (email1 == null || email2 == null) return false;
+        
+        email1 = email1.trim().toLowerCase();
+        email2 = email2.trim().toLowerCase();
+        
+        if (email1.equals(email2)) return true;
+        
+        // Gmail dot-equivalence check
+        boolean isGmail1 = email1.endsWith("@gmail.com") || email1.endsWith("@googlemail.com");
+        boolean isGmail2 = email2.endsWith("@gmail.com") || email2.endsWith("@googlemail.com");
+        
+        if (isGmail1 && isGmail2) {
+            String local1 = email1.split("@")[0].replace(".", "");
+            String local2 = email2.split("@")[0].replace(".", "");
+            return local1.equals(local2);
         }
-        return email;
+        
+        return false;
     }
 
     public Officer findByEmail(String email) {
-        List<Officer> officers = officerRepository.findByEmail(normalizeEmail(email));
-        return officers.isEmpty() ? null : officers.get(0);
+        if (email == null) return null;
+        String normalizedSearch = normalizeEmail(email);
+        
+        // First try to find by exact match
+        List<Officer> exactMatch = officerRepository.findByEmail(normalizedSearch);
+        if (!exactMatch.isEmpty()) return exactMatch.get(0);
+        
+        // If not found, check for Gmail dot-equivalent matches
+        if (normalizedSearch.endsWith("@gmail.com") || normalizedSearch.endsWith("@googlemail.com")) {
+            List<Officer> allOfficers = officerRepository.findAll();
+            for (Officer o : allOfficers) {
+                if (emailsConceptuallyMatch(o.getEmail(), normalizedSearch)) {
+                    return o;
+                }
+            }
+        }
+        
+        return null;
     }
 
     public boolean emailExists(String email) {
-        List<Officer> officers = officerRepository.findByEmail(normalizeEmail(email));
-        return !officers.isEmpty();
+        return findByEmail(email) != null;
     }
 
     public void save(Officer officer) {

@@ -30,13 +30,28 @@ public class UserService {
 
     public String normalizeEmail(String email) {
         if (email == null) return null;
-        email = email.trim().toLowerCase();
-        if (email.endsWith("@gmail.com") || email.endsWith("@googlemail.com")) {
-            String[] parts = email.split("@");
-            String localPart = parts[0].replace(".", "");
-            return localPart + "@" + parts[1];
+        return email.trim().toLowerCase();
+    }
+
+    public boolean emailsConceptuallyMatch(String email1, String email2) {
+        if (email1 == null || email2 == null) return false;
+        
+        email1 = email1.trim().toLowerCase();
+        email2 = email2.trim().toLowerCase();
+        
+        if (email1.equals(email2)) return true;
+        
+        // Gmail dot-equivalence check
+        boolean isGmail1 = email1.endsWith("@gmail.com") || email1.endsWith("@googlemail.com");
+        boolean isGmail2 = email2.endsWith("@gmail.com") || email2.endsWith("@googlemail.com");
+        
+        if (isGmail1 && isGmail2) {
+            String local1 = email1.split("@")[0].replace(".", "");
+            String local2 = email2.split("@")[0].replace(".", "");
+            return local1.equals(local2);
         }
-        return email;
+        
+        return false;
     }
 
     public void registerUser(String name, String email, String password, String mobileNumber) {
@@ -59,11 +74,28 @@ public class UserService {
     }
 
     public User findByEmail(String email) {
-        return userRepository.findByEmail(normalizeEmail(email)).orElse(null);
+        if (email == null) return null;
+        String normalizedSearch = normalizeEmail(email);
+        
+        // First try to find by exact match (extremely fast)
+        User exactMatch = userRepository.findByEmail(normalizedSearch).orElse(null);
+        if (exactMatch != null) return exactMatch;
+        
+        // If not found, check for Gmail dot-equivalent matches
+        if (normalizedSearch.endsWith("@gmail.com") || normalizedSearch.endsWith("@googlemail.com")) {
+            List<User> allUsers = userRepository.findAll();
+            for (User u : allUsers) {
+                if (emailsConceptuallyMatch(u.getEmail(), normalizedSearch)) {
+                    return u;
+                }
+            }
+        }
+        
+        return null;
     }
 
     public boolean emailExists(String email) {
-        return userRepository.existsByEmail(normalizeEmail(email));
+        return findByEmail(email) != null;
     }
 
     public void save(User user) {
